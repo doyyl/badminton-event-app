@@ -1,0 +1,133 @@
+external_id,role,company,category,name,email,phone,checked_in,walk_in
+A1,athlete,COV,Basic,Noppadol Akkrasettung,noppadol.akkrasettung@covestro.com,,false,false
+A2,athlete,COV,Basic,Thomas Festor,thomas.festor@covestro.com,+66 38 910601,false,false
+A3,athlete,COV,Basic,Thanakrit Chongyotha,thanakrit.chongyotha@covestro.com,,false,false
+A4,athlete,COV,Basic,Sompoch Klaewklad,sompoch.klaewklad@covestro.com,+66 38 910445,false,false
+A5,athlete,COV,Basic,Adisak Homsnit,adisak.homsnit@covestro.com,+66 38 910461,false,false
+A6,athlete,COV,Basic,Sermsuk Thanabanjerdsin,sermsuk.thanabanjerdsin@covestro.com,+66 38 910 411,false,false
+A7,athlete,COV,Basic,Supakorn Sriracha,supakorn.sriracha@covestro.com,,false,false
+A8,athlete,COV,Basic,Phupornpong Chatchamni,phupornpong.chatchamni@covestro.com,,false,false
+A9,athlete,COV,Expert,Warawut Panum,warawut.panum@covestro.com,+66 38 910390,false,false
+A10,athlete,COV,Expert,Supalak Duangchaum,supalak.duangchaum@covestro.com,+66 38 910061 1061,false,false
+A11,athlete,COV,Expert,Adisorn Juyhong,adisorn.juyhong@covestro.com,+66 38 910 493,false,false
+A12,athlete,COV,Expert,Chatmetha Prachanla,chatmetha.prachanla@covestro.com,,false,false
+A13,athlete,COV,Expert,Singha Chaibudda,singha.chaibudda@covestro.com,+66 38 910 253,false,false
+A14,athlete,COV,Expert,Pornthep Mungtokit,pornthep.mungtokit@covestro.com,+66 38 910 675,false,false
+A15,athlete,COV,Substitute,Sittikul Poungmali,sittikul.poungmali@covestro.com,,false,false
+A16,athlete,COV,Substitute,Surin Parinyanukulwong,surin.parinyanukulwong@covestro.com,+66 38 910106,false,false
+A17,athlete,COV,Substitute,Viratchaya Thavornchit,viratchaya.thavornchit@covestro.com,,false,false
+A18,athlete,COV,Substitute,Nuengsatree Boonseng,nuengsatree.boonseng@covestro.com,,false,false
+A19,athlete,COV,Substitute,Nattawat Ruangjui,nattawat.ruangjui@covestro.com,+66 38 910406,false,false
+A20,athlete,COV,Substitute,Kamnaun Dupasakul,kamnaun.dupasakul@covestro.com,,false,false
+A21,athlete,COV,Substitute,Ruttapoom Kalah,ruttapoom.kalah@covestro.com,+66 38 910232,false,false
+A22,athlete,COV,Substitute,Suppanida Srisawang,suppanida.srisawang@covestro.com,,false,false
+A23,athlete,COV,Substitute,Chanakarn Chungmarisakul,chanakarn.chungmarisakul@covestro.com,,false,false
+A24,athlete,COV,Substitute,Paungphet Somsirirak,paungphet.somsirirak@covestro.com,,false,false
+A25,athlete,COV,Substitute,Chotika Surinthong,chotika.surinthong@covestro.com,,false,false
+A26,athlete,COV,Substitute,Max Li,max.li@covestro.com,,false,false
+A27,athlete,COV,Substitute,Witchukorn Dechrudee,witchukorn.dechrudee@covestro.com,,false,false
+A28,athlete,COV,Substitute,Rugchanok Thaphinthong,r.thaphinthong@covestro.com,,false,false
+A29,athlete,AVT,Basic,Prawit Khumprasoet,Prawittar@gmail.com,+66 644434222,false,false
+A30,athlete,AVT,Basic,Patcharaporn Sangkhasila,patcharaporn.sang@agc.com,+66 985429626,false,false
+A31,athlete,AVT,Basic,Meena Khongkiaophan,meena.khon@agc.com,+66 625149499,false,false
+A32,athlete,AVT,Basic,Winai Saetang,winai.saet@agc.com,+66 824693964,false,false
+A33,athlete,AVT,Basic,Wanchalerm Warittharakun,wanchalerm.wari@agc.com,+66 933855554,false,false
+A34,athlete,AVT,Basic,Maneerat Khluensanan,maneerat.kleu@agc.com,+66 814798224,false,false
+A35,athlete,AVT,Basic,Tatsanawat Khiaophimpha,tatsanawat.khie@agc.com,+66 631875507,false,false
+A36,athlete,AVT,Basic,Sangduean Lueangsa-at,sangdeuan.leua@agc.com,+66 816152681,false,false
+A37,athlete,AVT,Expert,Pongpitak Puangkhamlai,pongpitak.puan@agc.com,+66 882678327,false,false
+A38,athlete,AVT,Expert,Oradee Chantharapanya,orradee.chan@agc.com,+66 851078353,false,false
+A39,athlete,AVT,Expert,Chupong Chakkranurak,chupong.jakr@agc.com,+66 866628522,false,false
+A40,athlete,AVT,Expert,Nichapha Worakitkanwasin,nichapha.wora@agc.com,+66 617725875,false,false
+A41,athlete,AVT,Expert,Saran Thapsaringkhara,sarun.tubs@agc.com,+66 889081147,false,false
+A42,athlete,AVT,Expert,Patcharaporn Sonmani,patcharaporn.sorn@agc.com,+66 959562308,false,false
+A43,athlete,AVT,Substitute,Kunakorn Boonla,kunakorn.boon@agc.com,+66 845192327,false,false
+A44,athlete,Thai MFC,Basic,Wanwisa Srikongrak,wanwisri@scg.com,+66 850856531,false,false
+A45,athlete,Thai MFC,Basic,Wirot Phianphasuk,wirotph@scg.com,+66 819062667,false,false
+A46,athlete,Thai MFC,Basic,Chanchai Klinsrisuk,chanchkl@scg.com,+66 824750027,false,false
+A47,athlete,Thai MFC,Basic,Suradet Rakthong,suradecr@scg.com,+66 868340535,false,false
+A48,athlete,Thai MFC,Basic,Phanuwat Sinthiam,panuwasi@scg.com,+66 992905553,false,false
+A49,athlete,Thai MFC,Basic,Kraiwit Intharaksa,kraiwiti@scg.com,+66 632189778,false,false
+A50,athlete,Thai MFC,Basic,Witsarut Wongsim,witsaruw@scg.com,+66 985362359,false,false
+A51,athlete,Thai MFC,Basic,Anupong Chaikantha,anuponch@scg.com,+66 882252519,false,false
+A52,athlete,BEE,Basic,Chakkraphan Chansaeng,chakkaphan_c@bsteneos.com,+66 800497959,false,false
+A53,athlete,BEE,Basic,Watanyu Mareesirisakul,watanyu_m@bsteneos.com,+66 800497959,false,false
+A54,athlete,BEE,Basic,Thepha Yuko,thepha_y@bsteneos.com,+66 800497959,false,false
+A55,athlete,BEE,Basic,Phuwadon Phongwadi,thepha_y@bsteneos.com,+66 800497959,false,false
+A56,athlete,BEE,Basic,Natnicha Atsawakan,natnicha_a@bsteneos.com,+66 800497959,false,false
+A57,athlete,BEE,Basic,Patthanan Khamphro,patthanan_k@bsteneos.com,+66 800497959,false,false
+A58,athlete,BEE,Expert,Thawat Phungoen,thawat_p@bsteneos.com,+66 800497959,false,false
+A59,athlete,BEE,Expert,Prakit Kothong,prakit_k@bsteneos.com,+66 800497959,false,false
+A60,athlete,BEE,Expert,Chatchai Saengthim,chakkaphan_c@bsteneos.com,+66 800497959,false,false
+A61,athlete,BEE,Expert,Prakit Kothong,prakit_k@bsteneos.com,+66 800497959,false,false
+A62,athlete,SOLVAY,Basic,Suttipong Promsiri,Suttipong.promsiri@solvay.com,+66 632073204,false,false
+A63,athlete,SOLVAY,Basic,Nichawee Boonroi,nichawee.boonroi@solvay.com,+66 632073204,false,false
+A64,athlete,SOLVAY,Basic,Nunmanat Singto,nunmanat.singto@solvay.com,+66 632073204,false,false
+A65,athlete,SOLVAY,Basic,Pajaree Sawangsawai,pajaree.sawangsawai@solvay.com,+66 632073204,false,false
+A66,athlete,SOLVAY,Basic,Kunakon Suvannakaew,kunakon.suvannakaew@solvay.com,+66 632073204,false,false
+A67,athlete,SOLVAY,Basic,Chonthicha Talabthong,chonthicha.talabthong@solvay.com,+66 632073204,false,false
+A68,athlete,SOLVAY,Expert,Teerayut Pramprayoon,teerayut.pramprayoon@solvay.com,+66 632073204,false,false
+A69,athlete,SOLVAY,Expert,Panitan Kiattisaksiri,panitan.kiattisaksiri@solvay.com,+66 632073204,false,false
+A70,athlete,SOLVAY,Expert,Jatuporn Jaipet,jatuporn.jaipet@solvay.com,+66 632073204,false,false
+A71,athlete,SOLVAY,Expert,Pairoj Tangdara,pairoj.tangdara@solvay.com,+66 632073204,false,false
+A72,athlete,Styrenix,Basic,Chokdee,teelokrodkrub@gmail.com,+66 891629546,false,false
+A73,athlete,Styrenix,Basic,Pacharee,pacharee.chanchuklin@styrenix.com,+66 891656260,false,false
+A74,athlete,Styrenix,Basic,Krisana,krisana.weerawong@styrenix.com,+66 876669930,false,false
+A75,athlete,Styrenix,Basic,Kotchaphat,kparueda@gmail.com,+66 863491347,false,false
+A76,athlete,Styrenix,Basic,Chatchawal,chatchawal.teaumrung@styrenix.com,+66 863491347,false,false
+A77,athlete,Styrenix,Basic,Paemika,pamika.phu@outlook.com,+66 811508916,false,false
+A78,athlete,Styrenix,Basic,Aree,aree.judang21@gmail.com,+66 863372688,false,false
+A79,athlete,Styrenix,Basic,Nanthaporn,panteen_369@hotmail.com,+66 854587447,false,false
+A80,athlete,Styrenix,Expert,Sopon,sopontrangansri@gmail.com,+66 631383837,false,false
+A81,athlete,Styrenix,Expert,Nitima,nitimakun@gmail.com,+66 856977409,false,false
+A82,athlete,Styrenix,Expert,Warunee,wphokaew23@gmail.com,+66 851356196,false,false
+A83,athlete,Styrenix,Expert,Sombat,peak55@gmail.com,+66 837670912,false,false
+A84,athlete,Styrenix,Expert,Amaret,Amares.saesem@styrenix.com,+66 947469540,false,false
+A85,athlete,Styrenix,Expert,Kanokporn,Kanokporn.kesonsiri@styrenix.com,+66 898346622,false,false
+A86,athlete,Styrenix,Expert,Thongchai,kanokporn.kae@gmail.com,+66 930950505,false,false
+A87,athlete,TPAC,Basic,Siriporn Raksuwan,Siriporn.Raks@th.tpcc-tpac.com,+66 38684816,false,false
+A88,athlete,TPAC,Basic,Anupun Maneesiri,Anupun.Mane@th.tpcc-tpac.com,+66 38684816,false,false
+A89,athlete,TPAC,Basic,Sompop Singhapun,Sompop.Sing@th.tpcc-tpac.com,+66 38684816,false,false
+A90,athlete,TPAC,Basic,Nuntarat Thetsawat,Nuntarat.Thet@th.tpcc-tpac.com,+66 38684816,false,false
+A91,athlete,TPAC,Basic,Saharat Puongnoi,Saharat.Puon@th.tpcc-tpac.com,+66 38684816,false,false
+A92,athlete,TPAC,Basic,Chanitsara Ngamsakpasert,Chanitsara.Ngam@th.tpcc-tpac.com,+66 38684816,false,false
+A93,athlete,TPAC,Basic,Saichon Bumroongsonthorn,Saichon.Bumr@th.tpcc-tpac.com,+66 38684816,false,false
+A94,athlete,TPAC,Basic,Apinya Supyen,Apinya.Supy@th.tpcc-tpac.com,+66 38684816,false,false
+A95,athlete,TPAC,Expert,Kraisak Saengsook,Kraisak.Saen@th.tpcc-tpac.com,+66 38684816,false,false
+A96,athlete,TPAC,Expert,Nut Thongluksanawong,Nut.Thon@th.tpcc-tpac.com,+66 38684816,false,false
+A97,athlete,TPAC,Expert,Patakorn Bunyakiart,Patakorn.Buny@th.tpcc-tpac.com,+66 38684816,false,false
+A98,athlete,TPAC,Expert,Attawit Insawang,Attawit.Insa@th.tpcc-tpac.com,+66 38684816,false,false
+A99,athlete,TPAC,Expert,Watcharin Khiatdet,Watcharin.Khia@th.tpcc-tpac.com,+66 38684816,false,false
+A100,athlete,TPAC,Expert,Arthit Phermtermsin,Arthit.Pher@th.tpcc-tpac.com,+66 38684816,false,false
+A101,athlete,TEX,Basic,Phu Phansawangwong,phu.p@tex.co.th,+66 898979414,false,false
+A102,athlete,TEX,Basic,Kanchana Wong-itsara,kanchana.w@tex.co.th,+66 818307709,false,false
+A103,athlete,TEX,Basic,Thipphawan Kitsawaengsak,tippawan.k@tex.co.th,+66 935484959,false,false
+A104,athlete,TEX,Basic,Wathini Thiangtrong,Watinee.T@tex.co.th,+66 643964165,false,false
+A105,athlete,TEX,Basic,Sanchai Sinphichan,Sanchai.S@tex.co.th,+66 633525356,false,false
+A106,athlete,TEX,Basic,Thanathip Soemsuk,Thanathip.Se@tex.co.th,+66 950511245,false,false
+A107,athlete,TEX,Basic,Parinya Sisuwan,Parinya.S@tex.co.th,+66 899387622,false,false
+A108,athlete,TEX,Basic,Chinnawat Banchuen,Chinnawat.B@tex.co.th,+66 819158299,false,false
+A109,athlete,TEX,Expert,Krittana Suksawat,Krittana.S@tex.co.th,+66 949155459,false,false
+A110,athlete,TEX,Expert,Phakkawat Chankutling,phakkawat.j@tex.co.th,+66 835253998,false,false
+A111,athlete,DOW,Basic,Yuttapong K.,kyuttapong@dow.com,,false,false
+A112,athlete,DOW,Basic,Narinthip S.,snarinthip@dow.com,,false,false
+A113,athlete,DOW,Basic,Kanitha A.,kanitha@dow.com,,false,false
+A114,athlete,DOW,Basic,Russarin P.,russarin@dow.com,,false,false
+S1,spectator,COV,Spectator,Viriya,i5_kalah@hotmail.com,,false,false
+S2,spectator,COV,Spectator,Aunchana Poungmali,aunchana.poungmali@covestro.com,,false,false
+S3,spectator,COV,Spectator,Apisak Rongsungnern,apisak.rongsungnern@covestro.com,,false,false
+S4,spectator,COV,Spectator,Pisit Dumjub,pisit.dumjub@covestro.com,,false,false
+S5,spectator,COV,Spectator,Sopit Chaikid,sopitindy@gmail.com,,false,false
+S6,spectator,COV,Spectator,Pannapa Prommajan,pannapa.prommajan@covestro.com,,false,false
+S7,spectator,COV,Spectator,Siyuda Choksirimongkolchai,siyuda.choksirimongkolchai@covestro.com,,false,false
+S8,spectator,COV,Spectator,Munin Kitsamret,munin.kitsamret@covestro.com,,false,false
+S9,spectator,COV,Spectator,Napaporn Tiengchad,napaporn.tiengchad@covestro.com,,false,false
+S10,spectator,COV,Spectator,Sirawith Dussadeephak,sirawith.dussadeephak@covestro.com,,false,false
+S11,spectator,Thai MFC,Spectator,Pitchaporn Yochana,pitchapy@scg.com,+66 947328218,false,false
+S12,spectator,Thai MFC,Spectator,Supitsara Mangmun,SUPISSAM@SCG.COM,+66 900523161,false,false
+S13,spectator,Thai MFC,Spectator,Wimonrat Chaithawong,Peang_wimon@hotmail.com,+66 863998610,false,false
+S14,spectator,Thai MFC,Spectator,Satjaporn Sutthison,SAJJAPRS@SCG.COM,+66 803070188,false,false
+S15,spectator,Thai MFC,Spectator,Benjarat Jongdee,benjaraj@scg.com,+66 935847256,false,false
+S16,spectator,Thai MFC,Spectator,Wallika Thongwichian,wallikat@scg.com,+66 876020186,false,false
+S17,spectator,DOW,Spectator,Pairin Kongsanor,PAIRIN@dow.com,,false,false
+S18,spectator,DOW,Spectator,Tawatchai Yebchaliew,YTawatchai@dow.com,,false,false
