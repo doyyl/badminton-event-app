@@ -58,9 +58,13 @@ export default function AdminAttendees() {
     e.preventDefault()
     setSaving(true)
     try {
-      const { count } = await supabase.from('attendees').select('*', { count: 'exact', head: true }).eq('walk_in', true)
+      const { data: existing } = await supabase.from('attendees').select('external_id').like('external_id', 'W%')
+      const maxNum = (existing || []).reduce((max, r) => {
+        const n = parseInt(r.external_id.slice(1))
+        return isNaN(n) ? max : Math.max(max, n)
+      }, 0)
       await supabase.from('attendees').insert({
-        external_id: 'W' + ((count ?? 0) + 1),
+        external_id: 'W' + (maxNum + 1),
         name: walkin.name.trim(),
         email: walkin.email.trim() || null,
         company: walkin.company,

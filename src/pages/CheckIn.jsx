@@ -63,12 +63,16 @@ export default function CheckIn() {
     if (!walkin.name.trim()) return
     setLoading(true)
     try {
-      const { count } = await supabase
+      const { data: existing } = await supabase
         .from('attendees')
-        .select('*', { count: 'exact', head: true })
-        .eq('walk_in', true)
+        .select('external_id')
+        .like('external_id', 'W%')
 
-      const externalId = 'W' + ((count ?? 0) + 1)
+      const maxNum = (existing || []).reduce((max, r) => {
+        const n = parseInt(r.external_id.slice(1))
+        return isNaN(n) ? max : Math.max(max, n)
+      }, 0)
+      const externalId = 'W' + (maxNum + 1)
       const { data, error } = await supabase
         .from('attendees')
         .insert({
