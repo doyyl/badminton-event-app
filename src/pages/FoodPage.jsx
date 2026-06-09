@@ -14,6 +14,12 @@ export default function FoodPage() {
   const [loading, setLoading] = useState(true)
   const [scanning, setScanning] = useState(false)
   const [cameraError, setCameraError] = useState('')
+  // Step 2: verification — { itemId, meta, item }
+  const [pendingClaim, setPendingClaim] = useState(null)
+  const [confirming, setConfirming] = useState(false)
+  // Step 3: success page — { itemId, meta }
+  const [claimedItem, setClaimedItem] = useState(null)
+
   const scannerRef = useRef(null)
   const processingRef = useRef(false)
 
@@ -31,7 +37,10 @@ export default function FoodPage() {
     fetchData().finally(() => setLoading(false))
 
     const ch = supabase.channel('food-page-claims')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'food_claims', filter: `attendee_external_id=eq.${guest.external_id}` }, fetchData)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'food_claims',
+        filter: `attendee_external_id=eq.${guest.external_id}`,
+      }, fetchData)
       .subscribe()
 
     return () => supabase.removeChannel(ch)
@@ -74,24 +83,33 @@ export default function FoodPage() {
     }
   }, [scanning])
 
-  // Keep handleScan in a ref so the effect closure is never stale
   const handleScanRef = useRef(null)
   handleScanRef.current = async function handleScan(text) {
     if (processingRef.current) return
     processingRef.current = true
 
-    // Stop scanner first
+    // Stop camera, move to verification step
     try { if (scannerRef.current?.isScanning) await scannerRef.current.stop() } catch {}
     scannerRef.current = null
     setScanning(false)
 
     if (!text.startsWith('FOOD:')) {
       toast.error('Invalid QR code. Scan a food station QR.')
+      processingRef.current = false
       return
     }
 
     const itemId = text.replace('FOOD:', '').trim()
-    const meta = FOOD_META[itemId]
+    const meta = FOOD_META[itemId] || { name: itemId, emoji: '🍽️' }
+    const item = foodItems.find(f => f.id === itemId || String(f.id) === itemId)
+
+    setPendingClaim({ itemId, meta, item })
+  }
+
+  async function confirmClaim() {
+    if (!pendingClaim) return
+    setConfirming(true)
+    const { itemId, meta } = pendingClaim
 
     try {
       const { data, error } = await supabase.rpc('claim_food', {
@@ -101,16 +119,30 @@ export default function FoodPage() {
       if (error) throw error
 
       if (data.success) {
-        toast.success(`${meta?.name || itemId} claimed! ✓`)
+        setPendingClaim(null)
+        setClaimedItem({ itemId, meta })
         fetchData()
       } else if (data.error === 'quota_reached') {
-        toast.error(`You've already claimed all ${meta?.name || itemId}(s).`)
+        toast.error(`You've already claimed all ${meta.name}(s).`)
+        setPendingClaim(null)
+        processingRef.current = false
       } else {
         toast.error(data.error || 'Unknown error')
+        setPendingClaim(null)
+        processingRef.current = false
       }
     } catch {
       toast.error('Server error. Try again.')
+      setPendingClaim(null)
+      processingRef.current = false
+    } finally {
+      setConfirming(false)
     }
+  }
+
+  function cancelVerification() {
+    setPendingClaim(null)
+    processingRef.current = false
   }
 
   function startScanner() {
@@ -133,6 +165,68 @@ export default function FoodPage() {
     return <div className="min-h-dvh flex items-center justify-center bg-gray-50"><LoadingSpinner size="lg" /></div>
   }
 
+  // Step 3: Success page
+  if (claimedItem) {
+    return (
+      <div className="min-h-dvh flex flex-col items-center justify-center bg-gray-50 p-6 text-center max-w-lg mx-auto">
+        <div className="space-y-6 w-full">
+          {/* Success icon */}
+          <div className="relative mx-auto w-32 h-32">
+            <div className="w-32 h-32 rounded-full bg-green-100 flex items-center justify-center text-6xl animate-[scale-in_0.3s_ease-out]">
+              {claimedItem.meta.emoji || '🍽️'}
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-xl font-black shadow-md">
+              ✓
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-3xl font-black text-gray-900">Claimed!</h2>
+            <p className="text-xl font-bold text-gray-700">{claimedItem.meta.name}</p>
+            <p className="text-sm text-gray-400">Successfully claimed for {guest.name}</p>
+          </div>
+
+          {/* Remaining coupons summary */}
+          <div className="card w-full text-left space-y-2">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your coupons</p>
+            {foodItems.map(item => {
+              const meta = FOOD_META[item.id] || { name: item.name, emoji: '🍽️' }
+              const claimed = claimCount(item.id) + (item.id === claimedItem.itemId || String(item.id) === claimedItem.itemId ? 1 : 0)
+              const full = claimed >= item.quota
+              return (
+                <div key={item.id} className="flex items-center gap-3">
+                  <span className="text-lg w-7 text-center">{meta.emoji}</span>
+                  <span className={`flex-1 text-sm font-medium ${full ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                    {meta.name}
+                  </span>
+                  {full
+                    ? <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ Done</span>
+                    : <span className="text-xs text-gray-400">{claimed}/{item.quota}</span>
+                  }
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="w-full space-y-3 pt-2">
+            <button
+              onClick={() => { setClaimedItem(null); processingRef.current = false }}
+              className="btn-primary w-full py-4 text-base font-bold"
+            >
+              Claim another coupon
+            </button>
+            <button
+              onClick={() => nav('/guest')}
+              className="w-full text-gray-400 text-sm py-2 hover:text-gray-600"
+            >
+              Back to dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
       {/* Header */}
@@ -153,6 +247,7 @@ export default function FoodPage() {
 
           return (
             <div key={item.id} className={`card flex items-center gap-4 ${full ? 'opacity-70' : ''}`}>
+              <div className="text-2xl w-8 text-center shrink-0">{meta.emoji}</div>
               <div className="flex-1 min-w-0">
                 <p className={`font-semibold text-gray-900 ${full ? 'line-through text-gray-400' : ''}`}>
                   {meta.name}
@@ -164,21 +259,21 @@ export default function FoodPage() {
                   {Array.from({ length: item.quota }).map((_, i) => (
                     <span
                       key={i}
-                      className={`w-2.5 h-2.5 rounded-full ${i < claimed ? 'bg-success' : 'bg-gray-200'}`}
+                      className={`w-2.5 h-2.5 rounded-full ${i < claimed ? 'bg-green-500' : 'bg-gray-200'}`}
                     />
                   ))}
                 </div>
               </div>
               {full ? (
-                <div className="flex items-center gap-1 text-gray-400 text-sm font-semibold whitespace-nowrap">
-                  <span className="text-success">✓</span> CLAIMED
+                <div className="flex items-center gap-1 text-green-600 text-sm font-bold whitespace-nowrap">
+                  ✓ CLAIMED
                 </div>
               ) : (
                 <button
                   onClick={startScanner}
                   className="flex items-center gap-1.5 bg-primary text-white text-xs font-bold px-3 py-2 rounded-lg whitespace-nowrap active:scale-95 transition-all"
                 >
-                  📷 Scan station QR
+                  📷 Scan QR
                 </button>
               )}
             </div>
@@ -186,17 +281,12 @@ export default function FoodPage() {
         })}
       </div>
 
-      {/* Scanner modal */}
+      {/* Step 1: Scanner modal */}
       {scanning && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 bg-black/80">
             <h3 className="text-white font-bold">Scan food station QR</h3>
-            <button
-              onClick={stopScanner}
-              className="text-white/70 text-2xl leading-none"
-            >
-              ×
-            </button>
+            <button onClick={stopScanner} className="text-white/70 text-2xl leading-none">×</button>
           </div>
 
           {cameraError ? (
@@ -219,6 +309,61 @@ export default function FoodPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Step 2: Verification modal */}
+      {pendingClaim && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl">
+            {/* Item preview */}
+            <div className="flex flex-col items-center gap-3 pt-2">
+              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-5xl">
+                {pendingClaim.meta.emoji || '🍽️'}
+              </div>
+              <div className="text-center">
+                <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Confirm Claim</p>
+                <h3 className="text-xl font-black text-gray-900">{pendingClaim.meta.name}</h3>
+                {pendingClaim.item && (
+                  <p className="text-sm text-gray-400 mt-0.5">
+                    {claimCount(pendingClaim.itemId) + 1} of {pendingClaim.item.quota} quota
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Name confirmation */}
+            <div className="bg-gray-50 rounded-2xl px-4 py-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-black text-sm shrink-0">
+                {guest.name?.[0]?.toUpperCase()}
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 text-sm">{guest.name}</p>
+                <p className="text-xs text-gray-400">{guest.company || guest.role}</p>
+              </div>
+            </div>
+
+            <p className="text-center text-sm text-gray-500">
+              This action cannot be undone. Are you sure you want to claim this item?
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={cancelVerification}
+                disabled={confirming}
+                className="py-3 rounded-2xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 disabled:opacity-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmClaim}
+                disabled={confirming}
+                className="py-3 rounded-2xl bg-primary text-white font-bold text-sm active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                {confirming ? <LoadingSpinner size="sm" /> : '✓ Confirm Claim'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
