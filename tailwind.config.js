@@ -4,13 +4,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        court: '#22c55e',
-        shuttle: '#f59e0b',
+        primary: '#dc2626',
+        'primary-dark': '#b91c1c',
+        success: '#16a34a',
+        warn: '#d97706',
+        // legacy aliases — kept so existing refs still compile
+        court: '#dc2626',
+        shuttle: '#d97706',
         dark: {
-          bg: '#0f0f1a',
-          card: '#1a1a2e',
-          border: '#2d2d4e',
-          muted: '#3d3d5e',
+          bg: '#f3f4f6',
+          card: '#ffffff',
+          border: '#e5e7eb',
+          muted: '#f9fafb',
         },
       },
       fontFamily: {

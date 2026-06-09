@@ -26,9 +26,9 @@ export default function AnnouncementBanner() {
   if (!text) return null
 
   return (
-    <div className="bg-shuttle/10 border border-shuttle/30 rounded-xl px-4 py-3 flex items-start gap-3">
+    <div className="bg-amber-500/10 border border-shuttle/30 rounded-xl px-4 py-3 flex items-start gap-3">
       <span className="text-lg mt-0.5">📢</span>
-      <p className="text-shuttle text-sm font-medium leading-snug">{text}</p>
+      <p className="text-amber-600 text-sm font-medium leading-snug">{text}</p>
     </div>
   )
 }

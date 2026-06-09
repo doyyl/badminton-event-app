@@ -10,7 +10,11 @@ import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 
 // Lazy-loaded — split from main bundle
-const ScanPage      = lazy(() => import('./pages/ScanPage'))
+const ScanPage         = lazy(() => import('./pages/ScanPage'))
+const FoodPage         = lazy(() => import('./pages/FoodPage'))
+const RefereePage      = lazy(() => import('./pages/RefereePage'))
+const RefereeCourtPage = lazy(() => import('./pages/RefereeCourtPage'))
+const CourtCheckinPage = lazy(() => import('./pages/CourtCheckinPage'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminAttendees = lazy(() => import('./pages/admin/AdminAttendees'))
 const AdminFood      = lazy(() => import('./pages/admin/AdminFood'))
@@ -54,6 +58,10 @@ export default function App() {
           <Route path="/" element={<CheckIn />} />
           <Route path="/guest" element={<GuestGuard><GuestPage /></GuestGuard>} />
           <Route path="/guest/scan" element={<GuestGuard><ScanPage /></GuestGuard>} />
+          <Route path="/guest/food" element={<GuestGuard><FoodPage /></GuestGuard>} />
+          <Route path="/court/:courtId" element={<CourtCheckinPage />} />
+          <Route path="/referee" element={<RefereePage />} />
+          <Route path="/referee/:courtId" element={<RefereeCourtPage />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route element={<AdminGuard><AdminLayout /></AdminGuard>}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />

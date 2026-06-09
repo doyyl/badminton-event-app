@@ -28,11 +28,11 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-dvh flex items-center justify-center p-4 bg-dark-bg">
+    <div className="min-h-dvh flex items-center justify-center p-4 bg-gray-50">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
           <div className="text-4xl">🛡️</div>
-          <h1 className="text-2xl font-black">Admin Access</h1>
+          <h1 className="text-2xl font-black text-gray-900">Staff Admin</h1>
           <p className="text-gray-400 text-sm">SMASH Tournament Control Panel</p>
         </div>
         <form onSubmit={handleSubmit} className="card space-y-4">
@@ -53,7 +53,7 @@ export default function AdminLogin() {
           </button>
         </form>
         <p className="text-center">
-          <button className="text-gray-500 text-sm hover:text-gray-300" onClick={() => nav('/')}>
+          <button className="text-gray-400 text-sm hover:text-gray-700" onClick={() => nav('/')}>
             ← Guest Check-in
           </button>
         </p>

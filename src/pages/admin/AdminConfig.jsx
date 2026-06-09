@@ -94,7 +94,7 @@ export default function AdminConfig() {
         </div>
 
         {seatingUrl && (
-          <div className="rounded-xl overflow-hidden border border-dark-border">
+          <div className="rounded-xl overflow-hidden border border-gray-200">
             <img src={seatingUrl} alt="Seating Map Preview" className="w-full h-auto max-h-64 object-contain" />
           </div>
         )}
@@ -105,11 +105,11 @@ export default function AdminConfig() {
       </div>
 
       {/* Supabase Storage instructions */}
-      <div className="card space-y-2 bg-dark-bg border-dark-border">
+      <div className="card space-y-2 bg-gray-50 border-gray-200">
         <h3 className="font-semibold text-sm">How to upload to Supabase Storage</h3>
         <ol className="text-xs text-gray-400 space-y-1 list-decimal list-inside">
           <li>Go to your Supabase project → Storage</li>
-          <li>Create a public bucket named <code className="text-court">event-assets</code></li>
+          <li>Create a public bucket named <code className="text-primary">event-assets</code></li>
           <li>Upload your seating map image</li>
           <li>Click the image → Get URL → copy and paste above</li>
         </ol>

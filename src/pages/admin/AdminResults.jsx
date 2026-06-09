@@ -112,7 +112,7 @@ export default function AdminResults() {
 
       {/* Results table */}
       <div className="card p-0 overflow-hidden">
-        <div className="px-4 py-3 border-b border-dark-border flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <h2 className="font-bold">🏆 Standings</h2>
           <button onClick={() => setShowAdd(true)} className="btn-primary text-sm py-1.5 px-3">+ Add Row</button>
         </div>
@@ -123,7 +123,7 @@ export default function AdminResults() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-gray-500 text-xs uppercase bg-dark-bg">
+                <tr className="text-gray-500 text-xs uppercase bg-gray-50">
                   <th className="text-left px-3 py-2">#</th>
                   <th className="text-left px-3 py-2">Team</th>
                   <th className="text-center px-2 py-2">W</th>
@@ -135,27 +135,27 @@ export default function AdminResults() {
               <tbody>
                 {results.map(r => (
                   editId === r.id ? (
-                    <tr key={r.id} className="border-t border-dark-border bg-dark-bg">
+                    <tr key={r.id} className="border-t border-gray-200 bg-gray-50">
                       <td className="px-2 py-2"><input className="input w-12 text-center text-sm py-1" type="number" value={editRow.rank} onChange={e => setEditRow(x => ({ ...x, rank: e.target.value }))} /></td>
                       <td className="px-2 py-2"><input className="input text-sm py-1" value={editRow.team} onChange={e => setEditRow(x => ({ ...x, team: e.target.value }))} /></td>
                       <td className="px-2 py-2"><input className="input w-12 text-center text-sm py-1" type="number" value={editRow.win} onChange={e => setEditRow(x => ({ ...x, win: e.target.value }))} /></td>
                       <td className="px-2 py-2"><input className="input w-12 text-center text-sm py-1" type="number" value={editRow.lose} onChange={e => setEditRow(x => ({ ...x, lose: e.target.value }))} /></td>
                       <td className="px-2 py-2"><input className="input w-14 text-center text-sm py-1" type="number" value={editRow.points} onChange={e => setEditRow(x => ({ ...x, points: e.target.value }))} /></td>
                       <td className="px-2 py-2 flex gap-1">
-                        <button onClick={() => saveEdit(r.id)} className="text-xs text-court font-bold">Save</button>
+                        <button onClick={() => saveEdit(r.id)} className="text-xs text-primary font-bold">Save</button>
                         <button onClick={() => setEditId(null)} className="text-xs text-gray-500">Cancel</button>
                       </td>
                     </tr>
                   ) : (
-                    <tr key={r.id} className="border-t border-dark-border">
+                    <tr key={r.id} className="border-t border-gray-200">
                       <td className="px-3 py-3">{r.rank}</td>
                       <td className="px-3 py-3 font-medium">{r.team}</td>
-                      <td className="px-2 py-3 text-center text-court">{r.win}</td>
+                      <td className="px-2 py-3 text-center text-primary">{r.win}</td>
                       <td className="px-2 py-3 text-center text-red-400">{r.lose}</td>
                       <td className="px-2 py-3 text-center font-bold">{r.points}</td>
                       <td className="px-2 py-3">
                         <div className="flex gap-2">
-                          <button onClick={() => { setEditId(r.id); setEditRow({ rank: r.rank, team: r.team, win: r.win, lose: r.lose, points: r.points }) }} className="text-xs text-shuttle">Edit</button>
+                          <button onClick={() => { setEditId(r.id); setEditRow({ rank: r.rank, team: r.team, win: r.win, lose: r.lose, points: r.points }) }} className="text-xs text-amber-600">Edit</button>
                           <button onClick={() => deleteRow(r.id)} className="text-xs text-red-400">Del</button>
                         </div>
                       </td>
@@ -171,7 +171,7 @@ export default function AdminResults() {
       {/* Add row modal */}
       {showAdd && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-dark-card border border-dark-border rounded-2xl w-full max-w-xs p-5 space-y-4">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-xs p-5 space-y-4">
             <h3 className="font-bold">Add Result Row</h3>
             <form onSubmit={addRow} className="space-y-3">
               <div className="flex gap-2">
