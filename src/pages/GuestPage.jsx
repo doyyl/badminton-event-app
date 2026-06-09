@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { fetchSchedule, findRowByEmail } from '../lib/googleSheet'
+import { fetchSchedule, fetchStandings, findRowByEmail } from '../lib/googleSheet'
 import AnnouncementBanner from '../components/AnnouncementBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
 import toast from 'react-hot-toast'
@@ -11,7 +11,7 @@ export default function GuestPage() {
   const guest = JSON.parse(sessionStorage.getItem('badminton_guest') || '{}')
   const [claims, setClaims] = useState([])
   const [foodItems, setFoodItems] = useState([])
-  const [results, setResults] = useState([])
+  const [standings, setStandings] = useState({ basic: [], expert: [] })
   const [motm, setMotm] = useState({})
   const [seatingUrl, setSeatingUrl] = useState('')
   const [courtMatch, setCourtMatch] = useState(null)
@@ -31,8 +31,8 @@ export default function GuestPage() {
   }, [guest.external_id])
 
   const fetchResults = useCallback(async () => {
-    const { data } = await supabase.from('results').select('*').order('rank')
-    setResults(data || [])
+    const data = await fetchStandings()
+    setStandings(data)
   }, [])
 
   const fetchConfig = useCallback(async () => {
@@ -57,7 +57,8 @@ export default function GuestPage() {
 
   const loadSchedule = useCallback(async () => {
     try {
-      const rows = await fetchSchedule()
+      const [rows, standing] = await Promise.all([fetchSchedule(), fetchStandings()])
+      setStandings(standing)
       setSchedule(rows)
       // Match by email — works once organiser adds an email column to the sheet
       const found = findRowByEmail(rows, guest.email)
@@ -89,9 +90,7 @@ export default function GuestPage() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'food_claims', filter: `attendee_external_id=eq.${guest.external_id}` }, () => fetchFood())
       .subscribe()
 
-    const resultsChannel = supabase.channel('results-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'results' }, () => fetchResults())
-      .subscribe()
+    // standings come from Google Sheet — polled via scheduleTimerRef, no Supabase channel needed
 
     const configChannel = supabase.channel('config-live')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'event_config' }, () => fetchConfig())
@@ -112,7 +111,6 @@ export default function GuestPage() {
 
     return () => {
       supabase.removeChannel(claimsChannel)
-      supabase.removeChannel(resultsChannel)
       supabase.removeChannel(configChannel)
       supabase.removeChannel(matchChannel)
       clearInterval(scheduleTimerRef.current)
@@ -136,7 +134,7 @@ export default function GuestPage() {
 
   // Sub-views
   if (view === 'results') {
-    return <ResultsView results={results} motm={motm} schedule={schedule} onBack={() => setView('home')} />
+    return <ResultsView standings={standings} motm={motm} schedule={schedule} onBack={() => setView('home')} />
   }
   if (view === 'seating') {
     return <SeatingView url={seatingUrl} onBack={() => setView('home')} />
@@ -256,7 +254,7 @@ export default function GuestPage() {
   )
 }
 
-function ResultsView({ results, motm, schedule, onBack }) {
+function ResultsView({ standings, motm, schedule, onBack }) {
   const [tab, setTab] = useState('schedule') // 'schedule' | 'standings'
 
   const live = schedule.filter(r => r.status === 'live')
@@ -316,7 +314,7 @@ function ResultsView({ results, motm, schedule, onBack }) {
         )}
 
         {tab === 'standings' && (
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-5">
             {motm?.name && (
               <div className="card bg-amber-50 border-amber-200 space-y-3">
                 <p className="text-amber-600 font-black text-xs uppercase tracking-widest">⭐ Man of the Match</p>
@@ -329,37 +327,14 @@ function ResultsView({ results, motm, schedule, onBack }) {
                 </div>
               </div>
             )}
-            <div className="card p-0 overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100">
-                <h3 className="font-bold text-gray-900">🏆 Standings</h3>
+            <StandingsSection level="Basic Level" matches={standings.basic} />
+            <StandingsSection level="Expert Level" matches={standings.expert} />
+            {standings.basic.length === 0 && standings.expert.length === 0 && (
+              <div className="flex flex-col items-center py-12 text-center gap-3">
+                <div className="text-4xl">🏆</div>
+                <p className="text-gray-400 text-sm">ยังไม่มีผลการแข่งขัน</p>
               </div>
-              {results.length === 0 ? (
-                <p className="p-4 text-gray-400 text-sm">Results not yet available.</p>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-gray-400 text-xs uppercase bg-gray-50">
-                      <th className="text-left px-4 py-2">#</th>
-                      <th className="text-left px-4 py-2">Team</th>
-                      <th className="text-center px-3 py-2">W</th>
-                      <th className="text-center px-3 py-2">L</th>
-                      <th className="text-center px-3 py-2">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {results.map((r, i) => (
-                      <tr key={r.id} className={`border-t border-gray-100 ${i === 0 ? 'font-bold' : ''}`}>
-                        <td className="px-4 py-3 text-gray-500">{r.rank}</td>
-                        <td className="px-4 py-3 text-gray-900">{r.team}</td>
-                        <td className="px-3 py-3 text-center text-green-600">{r.win}</td>
-                        <td className="px-3 py-3 text-center text-primary">{r.lose}</td>
-                        <td className="px-3 py-3 text-center font-bold text-gray-900">{r.points}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            )}
           </div>
         )}
       </div>
@@ -527,6 +502,89 @@ function CourtView({ match, sheetCourt, guestId, onBack, nav }) {
           📍 Check In at Court {match.court_id}
         </button>
       </div>
+    </div>
+  )
+}
+
+function StandingsSection({ level, matches }) {
+  const completed = matches.filter(m => m.completed)
+  const assigned  = matches.filter(m => !m.completed)
+  if (matches.length === 0) return null
+  const byRound = {}
+  for (const m of completed) {
+    const key = m.round || 'ผลการแข่งขัน'
+    if (!byRound[key]) byRound[key] = []
+    byRound[key].push(m)
+  }
+  const color = level === 'Basic Level'
+    ? 'bg-blue-50 border-blue-200 text-blue-700'
+    : 'bg-purple-50 border-purple-200 text-purple-700'
+  return (
+    <div className="space-y-3">
+      <div className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${color}`}>
+        🏸 {level}
+        <span className="font-normal opacity-70">· {completed.length} แมตช์จบแล้ว</span>
+      </div>
+      {Object.entries(byRound).map(([round, ms]) => (
+        <RoundGroup key={round} round={round} matches={ms} />
+      ))}
+      {assigned.length > 0 && (
+        <RoundGroup round="รอแข่ง" matches={assigned} defaultOpen={false} dimmed />
+      )}
+      {completed.length === 0 && assigned.length === 0 && (
+        <p className="text-gray-400 text-sm text-center py-4">ยังไม่มีผล</p>
+      )}
+    </div>
+  )
+}
+
+function RoundGroup({ round, matches, defaultOpen = true, dimmed = false }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="card p-0 overflow-hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+      >
+        <span className="font-bold text-sm text-gray-800">{round}</span>
+        <span className="text-gray-400 text-xs">{matches.length} แมตช์ {open ? '▲' : '▼'}</span>
+      </button>
+      {open && matches.map((m, i) => (
+        <MatchCard key={m.matchNo} match={m} border={i > 0} dimmed={dimmed} />
+      ))}
+    </div>
+  )
+}
+
+function MatchCard({ match, border, dimmed }) {
+  const { team1, team2, winner, court, time, matchNo } = match
+  const hasScores = team1.scores.some(s => s > 0) || team2.scores.some(s => s > 0)
+  return (
+    <div className={`px-4 py-3 ${border ? 'border-t border-gray-100' : ''} ${dimmed ? 'opacity-60' : ''}`}>
+      <div className="flex items-center gap-1 mb-2 text-xs text-gray-400">
+        <span className="font-mono">#{matchNo}</span>
+        {time && <span>· {time}</span>}
+        {court && <span className="bg-gray-100 text-gray-600 font-semibold px-1.5 py-0.5 rounded">สนาม {court}</span>}
+      </div>
+      {[{ t: team1, opp: team2 }, { t: team2, opp: team1 }].map(({ t, opp }, idx) => (
+        <div key={idx} className={`flex items-center justify-between gap-2 py-1.5 rounded-lg px-2 mb-1 ${winner === t.team ? 'bg-green-50' : ''}`}>
+          <div className="flex-1 min-w-0">
+            <p className={`font-bold text-sm ${winner === t.team ? 'text-green-700' : 'text-gray-800'}`}>
+              {t.team || '—'}{winner === t.team && <span className="ml-1.5 text-xs">🏆</span>}
+            </p>
+            {t.players.length > 0 && <p className="text-xs text-gray-400 truncate">{t.players.join(' / ')}</p>}
+          </div>
+          {hasScores && (
+            <div className="flex gap-1 shrink-0">
+              {t.scores.map((s, i) => (
+                <span key={i} className={`text-sm font-black w-7 text-center ${s > (opp.scores[i] || 0) ? 'text-green-600' : 'text-gray-400'}`}>
+                  {s || 0}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
