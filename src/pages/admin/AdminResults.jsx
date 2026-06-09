@@ -1,15 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { fetchSchedule } from '../../lib/googleSheet'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../../components/LoadingSpinner'
 
 const EMPTY_ROW = { rank: '', team: '', win: 0, lose: 0, points: 0 }
 
 export default function AdminResults() {
+  const [tab, setTab] = useState('schedule') // 'schedule' | 'standings'
+  const [schedule, setSchedule] = useState([])
+  const [scheduleLoading, setScheduleLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState(null)
   const [results, setResults] = useState([])
   const [motm, setMotm] = useState({ name: '', team: '', image: '' })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const timerRef = useRef(null)
   const [newRow, setNewRow] = useState(EMPTY_ROW)
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState(null)
@@ -25,8 +31,23 @@ export default function AdminResults() {
     setMotm({ name: cfg.motm_name || '', team: cfg.motm_team || '', image: cfg.motm_image_url || '' })
   }
 
+  async function loadSchedule() {
+    try {
+      const rows = await fetchSchedule()
+      setSchedule(rows)
+      setLastUpdated(new Date())
+    } catch {
+      toast.error('Could not fetch schedule from Google Sheet')
+    } finally {
+      setScheduleLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchData().finally(() => setLoading(false))
+    loadSchedule()
+    timerRef.current = setInterval(loadSchedule, 60_000)
+    return () => clearInterval(timerRef.current)
   }, [])
 
   async function saveMotm() {
@@ -79,11 +100,115 @@ export default function AdminResults() {
     fetchData()
   }
 
+  const live = schedule.filter(r => r.status === 'live')
+  const done = schedule.filter(r => r.status === 'done')
+  const upcoming = schedule.filter(r => r.status === 'upcoming')
+
   if (loading) return <div className="flex justify-center pt-12"><LoadingSpinner size="lg" /></div>
 
   return (
     <div className="space-y-5">
-      <h1 className="font-black text-2xl">Results & MOTM</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-black text-2xl">Results & Schedule</h1>
+        {live.length > 0 && (
+          <span className="flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            {live.length} LIVE
+          </span>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-gray-200">
+        {['schedule', 'standings'].map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+              tab === t ? 'border-primary text-primary' : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            {t === 'schedule' ? '📋 ตารางแข่ง (Live)' : '🏆 Standings'}
+          </button>
+        ))}
+      </div>
+
+      {/* Live Schedule tab */}
+      {tab === 'schedule' && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              {lastUpdated && <span>Updated {lastUpdated.toLocaleTimeString()}</span>}
+              <span>· auto-refresh 60s</span>
+            </div>
+            <button onClick={loadSchedule} className="text-xs text-primary font-semibold">↻ Refresh</button>
+          </div>
+
+          {scheduleLoading ? (
+            <div className="flex justify-center py-8"><LoadingSpinner size="lg" /></div>
+          ) : schedule.length === 0 ? (
+            <div className="card text-center py-8 text-gray-400 text-sm">ยังไม่มีข้อมูลจาก Google Sheet</div>
+          ) : (
+            <>
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'LIVE', value: live.length, color: 'text-primary' },
+                  { label: 'Upcoming', value: upcoming.length, color: 'text-amber-600' },
+                  { label: 'Done', value: done.length, color: 'text-green-600' },
+                ].map(s => (
+                  <div key={s.label} className="card text-center py-3">
+                    <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Full table */}
+              <div className="card p-0 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-gray-500 text-xs uppercase bg-gray-50 border-b border-gray-200">
+                        <th className="text-left px-3 py-2">#</th>
+                        <th className="text-left px-3 py-2">รอบ</th>
+                        <th className="text-left px-3 py-2">รุ่น</th>
+                        <th className="text-left px-3 py-2">เวลา</th>
+                        <th className="text-left px-3 py-2">สถานะ</th>
+                        <th className="text-left px-3 py-2">สนาม</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {schedule.map((r, i) => (
+                        <tr key={r.matchNo} className={`border-t border-gray-100 ${r.status === 'live' ? 'bg-primary/5' : ''}`}>
+                          <td className="px-3 py-2.5 font-mono text-gray-500">{r.matchNo}</td>
+                          <td className="px-3 py-2.5 text-gray-800 text-xs">{r.round}</td>
+                          <td className="px-3 py-2.5 text-gray-500 text-xs">{r.category}</td>
+                          <td className="px-3 py-2.5 text-gray-500 text-xs">{r.time}</td>
+                          <td className="px-3 py-2.5">
+                            {r.status === 'live' && (
+                              <span className="flex items-center gap-1 text-xs font-bold text-primary">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />LIVE
+                              </span>
+                            )}
+                            {r.status === 'done' && <span className="text-xs font-bold text-green-600">✓ จบ</span>}
+                            {r.status === 'upcoming' && <span className="text-xs text-gray-400">—</span>}
+                          </td>
+                          <td className="px-3 py-2.5 text-xs font-semibold text-gray-700">{r.courtRaw || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Standings tab */}
+      {tab === 'standings' && (
+        <div className="space-y-5">
 
       {/* MOTM editor */}
       <div className="card space-y-3">
@@ -204,6 +329,8 @@ export default function AdminResults() {
               </div>
             </form>
           </div>
+        </div>
+      )}
         </div>
       )}
     </div>
