@@ -16,8 +16,9 @@ export default function FoodPage() {
   const [cameraError, setCameraError] = useState('')
   // Step 2: verification — { itemId, meta, item }
   const [pendingClaim, setPendingClaim] = useState(null)
+  const [claimQty, setClaimQty] = useState(1)
   const [confirming, setConfirming] = useState(false)
-  // Step 3: success page — { itemId, meta }
+  // Step 3: success page — { itemId, meta, qty }
   const [claimedItem, setClaimedItem] = useState(null)
 
   const scannerRef = useRef(null)
@@ -103,6 +104,7 @@ export default function FoodPage() {
     const meta = FOOD_META[itemId] || { name: itemId, emoji: '🍽️' }
     const item = foodItems.find(f => f.id === itemId || String(f.id) === itemId)
 
+    setClaimQty(1)
     setPendingClaim({ itemId, meta, item })
   }
 
@@ -110,25 +112,29 @@ export default function FoodPage() {
     if (!pendingClaim) return
     setConfirming(true)
     const { itemId, meta } = pendingClaim
+    let successCount = 0
 
     try {
-      const { data, error } = await supabase.rpc('claim_food', {
-        p_attendee_external_id: guest.external_id,
-        p_item_id: itemId,
-      })
-      if (error) throw error
+      for (let i = 0; i < claimQty; i++) {
+        const { data, error } = await supabase.rpc('claim_food', {
+          p_attendee_external_id: guest.external_id,
+          p_item_id: itemId,
+        })
+        if (error) throw error
+        if (data.success) {
+          successCount++
+        } else {
+          // quota hit mid-loop — stop early
+          break
+        }
+      }
 
-      if (data.success) {
-        setPendingClaim(null)
-        setClaimedItem({ itemId, meta })
+      setPendingClaim(null)
+      if (successCount > 0) {
+        setClaimedItem({ itemId, meta, qty: successCount })
         fetchData()
-      } else if (data.error === 'quota_reached') {
-        toast.error(`You've already claimed all ${meta.name}(s).`)
-        setPendingClaim(null)
-        processingRef.current = false
       } else {
-        toast.error(data.error || 'Unknown error')
-        setPendingClaim(null)
+        toast.error(`You've already claimed all ${meta.name}(s).`)
         processingRef.current = false
       }
     } catch {
@@ -183,7 +189,12 @@ export default function FoodPage() {
           <div className="space-y-2">
             <h2 className="text-3xl font-black text-gray-900">Claimed!</h2>
             <p className="text-xl font-bold text-gray-700">{claimedItem.meta.name}</p>
-            <p className="text-sm text-gray-400">Successfully claimed for {guest.name}</p>
+            {claimedItem.qty > 1 && (
+              <div className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full text-sm">
+                × {claimedItem.qty} ครั้ง
+              </div>
+            )}
+            <p className="text-sm text-gray-400">เครมสำเร็จสำหรับ {guest.name}</p>
           </div>
 
           {/* Remaining coupons summary */}
@@ -313,7 +324,10 @@ export default function FoodPage() {
       )}
 
       {/* Step 2: Verification modal */}
-      {pendingClaim && (
+      {pendingClaim && (() => {
+        const already = claimCount(pendingClaim.itemId)
+        const remaining = pendingClaim.item ? pendingClaim.item.quota - already : 1
+        return (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl">
             {/* Item preview */}
@@ -324,12 +338,52 @@ export default function FoodPage() {
               <div className="text-center">
                 <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Confirm Claim</p>
                 <h3 className="text-xl font-black text-gray-900">{pendingClaim.meta.name}</h3>
-                {pendingClaim.item && (
-                  <p className="text-sm text-gray-400 mt-0.5">
-                    {claimCount(pendingClaim.itemId) + 1} of {pendingClaim.item.quota} quota
-                  </p>
-                )}
+                <p className="text-sm text-gray-400 mt-0.5">
+                  เหลือสิทธิ์ {remaining} ครั้ง
+                </p>
               </div>
+            </div>
+
+            {/* Quantity picker */}
+            <div className="bg-gray-50 rounded-2xl px-4 py-4">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center mb-3">จำนวนที่ต้องการรับ</p>
+              <div className="flex items-center justify-center gap-6">
+                <button
+                  onClick={() => setClaimQty(q => Math.max(1, q - 1))}
+                  disabled={claimQty <= 1}
+                  className="w-11 h-11 rounded-full border-2 border-gray-200 text-2xl font-bold text-gray-500 hover:border-primary hover:text-primary disabled:opacity-30 transition-all active:scale-90"
+                >
+                  −
+                </button>
+                <div className="text-center min-w-[3rem]">
+                  <span className="text-4xl font-black text-gray-900">{claimQty}</span>
+                  <p className="text-xs text-gray-400 mt-0.5">ครั้ง</p>
+                </div>
+                <button
+                  onClick={() => setClaimQty(q => Math.min(remaining, q + 1))}
+                  disabled={claimQty >= remaining}
+                  className="w-11 h-11 rounded-full border-2 border-primary text-2xl font-bold text-primary hover:bg-primary hover:text-white disabled:opacity-30 transition-all active:scale-90"
+                >
+                  +
+                </button>
+              </div>
+              {remaining > 1 && (
+                <div className="flex justify-center gap-2 mt-3">
+                  {Array.from({ length: remaining }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setClaimQty(i + 1)}
+                      className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
+                        claimQty === i + 1
+                          ? 'bg-primary text-white'
+                          : 'bg-white border border-gray-200 text-gray-500 hover:border-primary'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Name confirmation */}
@@ -343,29 +397,28 @@ export default function FoodPage() {
               </div>
             </div>
 
-            <p className="text-center text-sm text-gray-500">
-              This action cannot be undone. Are you sure you want to claim this item?
-            </p>
-
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={cancelVerification}
                 disabled={confirming}
                 className="py-3 rounded-2xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 disabled:opacity-50 transition-all"
               >
-                Cancel
+                ยกเลิก
               </button>
               <button
                 onClick={confirmClaim}
                 disabled={confirming}
                 className="py-3 rounded-2xl bg-primary text-white font-bold text-sm active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
-                {confirming ? <LoadingSpinner size="sm" /> : '✓ Confirm Claim'}
+                {confirming
+                ? <LoadingSpinner size="sm" />
+                : `✓ ยืนยัน ${claimQty > 1 ? `${claimQty} ครั้ง` : ''}`}
               </button>
             </div>
           </div>
         </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
