@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
 
-const COMPANIES = ['COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'Other']
+const COMPANIES = ['COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'KNS', 'KNT', 'Other']
 const CATEGORIES = ['Basic', 'Expert', 'Substitute', 'Follower']
 
 export default function CheckIn() {

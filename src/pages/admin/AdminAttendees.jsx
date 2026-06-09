@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../../components/LoadingSpinner'
 
-const COMPANIES = ['All', 'COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'Other']
+const COMPANIES = ['All', 'COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'KNS', 'KNT', 'Other']
 const CATEGORIES_ALL = ['All', 'Basic', 'Expert', 'Substitute', 'Follower']
 
 function Toggle({ on, onChange }) {
@@ -174,7 +174,7 @@ export default function AdminAttendees() {
                 <div className="flex-1">
                   <label className="label">Company</label>
                   <select className="input" value={walkin.company} onChange={e => setWalkin(w => ({ ...w, company: e.target.value }))}>
-                    {['COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'Other'].map(c => <option key={c}>{c}</option>)}
+                    {['COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'KNS', 'KNT', 'Other'].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div className="flex-1">
