@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
 
-const COMPANIES = ['COV', 'AVT', 'Thai MFC', 'Other']
-const CATEGORIES = ['Basic', 'Expert', 'Substitute', 'Spectator']
+const COMPANIES = ['COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'Other']
+const CATEGORIES = ['Basic', 'Expert', 'Substitute', 'Follower']
 
 export default function CheckIn() {
   const nav = useNavigate()
@@ -77,7 +77,7 @@ export default function CheckIn() {
           email: email.trim() || null,
           company: walkin.company,
           category: walkin.category,
-          role: walkin.category === 'Spectator' ? 'spectator' : 'athlete',
+          role: walkin.category === 'Follower' ? 'spectator' : 'athlete',
           checked_in: true,
           check_in_time: new Date().toISOString(),
           walk_in: true,

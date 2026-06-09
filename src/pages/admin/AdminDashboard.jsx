@@ -44,7 +44,7 @@ export default function AdminDashboard() {
           { label: 'Total', value: stats.total, color: 'text-gray-900' },
           { label: 'Checked In', value: stats.checked, color: 'text-primary' },
           { label: 'Athletes', value: stats.athletes, color: 'text-blue-600' },
-          { label: 'Spectators', value: stats.spectators, color: 'text-purple-600' },
+          { label: 'Followers', value: stats.spectators, color: 'text-purple-600' },
         ].map(s => (
           <div key={s.label} className="card py-3">
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>

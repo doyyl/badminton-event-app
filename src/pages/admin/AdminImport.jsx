@@ -7,7 +7,7 @@ const ALL_COLS = ['external_id', 'name', 'email', 'phone', 'company', 'category'
 const EXAMPLE = `external_id,name,email,phone,company,category
 A1,John Smith,john@example.com,0812345678,COV,Expert
 A2,Jane Doe,jane@example.com,,AVT,Basic
-S1,Tom Lee,tom@example.com,,Thai MFC,Spectator`
+S1,Tom Lee,tom@example.com,,Thai MFC,Follower`
 
 function parseCSV(text) {
   const lines = text.trim().split('\n').filter(l => l.trim())
@@ -123,7 +123,7 @@ export default function AdminImport() {
         </div>
         <ul className="text-xs text-gray-400 space-y-1 list-disc list-inside">
           <li><code className="text-primary">external_id</code> — unique ID (e.g. A1, S1). Pre-registered IDs should NOT start with W (reserved for walk-ins).</li>
-          <li><code className="text-primary">category</code> — Basic / Expert / Substitute / Spectator</li>
+          <li><code className="text-primary">category</code> — Basic / Expert / Substitute / Follower</li>
           <li><code className="text-primary">role</code> — athlete / spectator (auto-derived from category if omitted)</li>
           <li>Existing rows with the same <code className="text-primary">external_id</code> will be updated.</li>
         </ul>

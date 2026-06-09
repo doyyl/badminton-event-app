@@ -3,8 +3,8 @@ import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../../components/LoadingSpinner'
 
-const COMPANIES = ['All', 'COV', 'AVT', 'Thai MFC', 'Other']
-const CATEGORIES_ALL = ['All', 'Basic', 'Expert', 'Substitute', 'Spectator']
+const COMPANIES = ['All', 'COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'Other']
+const CATEGORIES_ALL = ['All', 'Basic', 'Expert', 'Substitute', 'Follower']
 
 function Toggle({ on, onChange }) {
   return (
@@ -65,7 +65,7 @@ export default function AdminAttendees() {
         email: walkin.email.trim() || null,
         company: walkin.company,
         category: walkin.category,
-        role: walkin.category === 'Spectator' ? 'spectator' : 'athlete',
+        role: walkin.category === 'Follower' ? 'spectator' : 'athlete',
         checked_in: true,
         check_in_time: new Date().toISOString(),
         walk_in: true,
@@ -101,7 +101,7 @@ export default function AdminAttendees() {
           { label: 'Total', value: attendees.length },
           { label: 'Checked In', value: checkedIn },
           { label: 'Athletes', value: athletes },
-          { label: 'Spectators', value: spectators },
+          { label: 'Followers', value: spectators },
         ].map(s => (
           <div key={s.label} className="card py-3">
             <p className="text-xl font-black text-gray-900">{s.value}</p>
@@ -174,13 +174,13 @@ export default function AdminAttendees() {
                 <div className="flex-1">
                   <label className="label">Company</label>
                   <select className="input" value={walkin.company} onChange={e => setWalkin(w => ({ ...w, company: e.target.value }))}>
-                    {['COV', 'AVT', 'Thai MFC', 'Other'].map(c => <option key={c}>{c}</option>)}
+                    {['COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'Other'].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div className="flex-1">
                   <label className="label">Category</label>
                   <select className="input" value={walkin.category} onChange={e => setWalkin(w => ({ ...w, category: e.target.value }))}>
-                    {['Basic', 'Expert', 'Substitute', 'Spectator'].map(c => <option key={c}>{c}</option>)}
+                    {['Basic', 'Expert', 'Substitute', 'Follower'].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
