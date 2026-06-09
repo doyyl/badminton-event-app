@@ -141,7 +141,7 @@ export default function CheckIn() {
 
           <div className="pt-4 space-y-2">
             <p className="section-label">Event Info</p>
-            <button onClick={() => nav('/guest')} className="nav-item text-left">
+            <button onClick={() => nav('/results')} className="nav-item text-left">
               <div className="flex items-center gap-3">
                 <span className="text-lg">🏆</span>
                 <span className="font-semibold text-gray-800">Live results</span>
