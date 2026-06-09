@@ -37,36 +37,52 @@ export default function FoodPage() {
     return () => supabase.removeChannel(ch)
   }, [])
 
-  async function startScanner() {
-    setCameraError('')
-    setScanning(true)
-    processingRef.current = false
-    try {
-      const qr = new Html5Qrcode('food-qr-reader')
-      scannerRef.current = qr
-      await qr.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 220, height: 220 } },
-        handleScan,
-        () => {}
-      )
-    } catch {
-      setCameraError('Camera access denied. Please allow camera permissions.')
-      setScanning(false)
+  // Initialize scanner only AFTER the modal div is in the DOM
+  useEffect(() => {
+    if (!scanning) return
+
+    let qr = null
+    let stopped = false
+
+    async function init() {
+      try {
+        qr = new Html5Qrcode('food-qr-reader')
+        scannerRef.current = qr
+        await qr.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          (text) => {
+            if (stopped) return
+            handleScanRef.current(text)
+          },
+          () => {}
+        )
+      } catch {
+        if (!stopped) {
+          setCameraError('Camera access denied. Please allow camera permissions.')
+          setScanning(false)
+        }
+      }
     }
-  }
 
-  async function stopScanner() {
-    try {
-      if (scannerRef.current?.isScanning) await scannerRef.current.stop()
-    } catch {}
-    scannerRef.current = null
-  }
+    init()
 
-  async function handleScan(text) {
+    return () => {
+      stopped = true
+      try { qr?.stop() } catch {}
+      scannerRef.current = null
+    }
+  }, [scanning])
+
+  // Keep handleScan in a ref so the effect closure is never stale
+  const handleScanRef = useRef(null)
+  handleScanRef.current = async function handleScan(text) {
     if (processingRef.current) return
     processingRef.current = true
-    await stopScanner()
+
+    // Stop scanner first
+    try { if (scannerRef.current?.isScanning) await scannerRef.current.stop() } catch {}
+    scannerRef.current = null
     setScanning(false)
 
     if (!text.startsWith('FOOD:')) {
@@ -95,6 +111,18 @@ export default function FoodPage() {
     } catch {
       toast.error('Server error. Try again.')
     }
+  }
+
+  function startScanner() {
+    setCameraError('')
+    processingRef.current = false
+    setScanning(true)
+  }
+
+  async function stopScanner() {
+    try { if (scannerRef.current?.isScanning) await scannerRef.current.stop() } catch {}
+    scannerRef.current = null
+    setScanning(false)
   }
 
   function claimCount(itemId) {
@@ -164,7 +192,7 @@ export default function FoodPage() {
           <div className="flex items-center justify-between px-4 py-3 bg-black/80">
             <h3 className="text-white font-bold">Scan food station QR</h3>
             <button
-              onClick={() => { stopScanner(); setScanning(false) }}
+              onClick={stopScanner}
               className="text-white/70 text-2xl leading-none"
             >
               ×
