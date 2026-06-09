@@ -115,7 +115,7 @@ export default function CheckIn() {
         <div className="bg-gradient-to-b from-slate-400 to-slate-300 px-6 pt-14 pb-10 text-center">
           <p className="text-xs font-bold text-white/70 uppercase tracking-widest mb-4">SMASH BADMINTON</p>
           <h1 className="text-4xl font-black text-white leading-tight">Badminton</h1>
-          <h2 className="text-3xl font-black text-primary mt-1">Tournament 2024!</h2>
+          <h2 className="text-3xl font-black text-primary mt-1">Tournament 2026!</h2>
           <p className="text-white/70 text-sm mt-3">
             Corporate badminton tournament. Check in with your email to access your pass.
           </p>

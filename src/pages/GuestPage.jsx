@@ -166,7 +166,7 @@ export default function GuestPage() {
             {guest.role}
           </span>
         </div>
-        <p className="text-white/50 text-xs mt-3 uppercase tracking-widest">SMASH BADMINTON · TOURNAMENT 2024</p>
+        <p className="text-white/50 text-xs mt-3 uppercase tracking-widest">SMASH BADMINTON · TOURNAMENT 2026</p>
       </div>
 
       {/* Status bar */}
