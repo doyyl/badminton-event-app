@@ -1,5 +1,5 @@
 const CSV_URL =
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQT8mLCtvDk-6szfIHyYjgruTLcdH-ZT3kXWDrQbqpzEkNfu-jVoVGVbxNkh7xHUaNO-boy6-iVlgqP/pub?output=csv'
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPFczRsVCy62h525IVkhjiYLSn_PPoxB0xj5dQZOL5ybjvHaP3x7WDbUQvvGPPvdi1aX47YJ8rEywQ/pub?output=csv'
 
 function parseCsvRow(line) {
   const cells = []
