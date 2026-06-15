@@ -190,13 +190,21 @@ export default function GuestPage() {
                 <div className="text-left">
                   <p className="font-semibold text-gray-800">My Court</p>
                   {courtMatch ? (
-                    <p className="text-xs text-primary">Court {courtMatch.court_id} assigned</p>
+                    <p className="text-xs text-primary font-bold">สนาม {courtMatch.court_id}</p>
+                  ) : sheetCourt?.courtNum ? (
+                    <p className="text-xs text-primary font-bold">สนาม {sheetCourt.courtNum} · Match #{sheetCourt.matchNo}</p>
                   ) : (
-                    <p className="text-xs text-gray-400">No match assigned yet</p>
+                    <p className="text-xs text-gray-400">ยังไม่มีการกำหนดสนาม</p>
                   )}
                 </div>
               </div>
-              <span className="text-gray-400">›</span>
+              {courtMatch || sheetCourt?.courtNum ? (
+                <span className="text-2xl font-black text-primary">
+                  {courtMatch ? courtMatch.court_id : sheetCourt.courtNum}
+                </span>
+              ) : (
+                <span className="text-gray-400">›</span>
+              )}
             </button>
           </div>
         )}

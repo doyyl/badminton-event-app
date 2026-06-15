@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../lib/supabase'
 import { FOOD_META } from '../lib/foodMeta'
+
+const HIDDEN_FOOD_IDS = new Set(['hydration', 'soft_drink', 'water'])
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
 
@@ -200,7 +202,7 @@ export default function FoodPage() {
           {/* Remaining coupons summary */}
           <div className="card w-full text-left space-y-2">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your coupons</p>
-            {foodItems.map(item => {
+            {foodItems.filter(item => !HIDDEN_FOOD_IDS.has(item.id)).map(item => {
               const meta = FOOD_META[item.id] || { name: item.name, emoji: '🍽️' }
               const claimed = claimCount(item.id) + (item.id === claimedItem.itemId || String(item.id) === claimedItem.itemId ? 1 : 0)
               const full = claimed >= item.quota
@@ -251,7 +253,7 @@ export default function FoodPage() {
 
       {/* Food list */}
       <div className="flex-1 p-4 space-y-3 pb-8">
-        {foodItems.map(item => {
+        {foodItems.filter(item => !HIDDEN_FOOD_IDS.has(item.id)).map(item => {
           const meta = FOOD_META[item.id] || { name: item.name, emoji: '🍽️' }
           const claimed = claimCount(item.id)
           const full = claimed >= item.quota
