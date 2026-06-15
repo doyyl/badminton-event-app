@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { fetchSchedule, fetchStandings, findRowByEmail } from '../lib/googleSheet'
+import { fetchSchedule, fetchStandings, findScheduleRowByName } from '../lib/googleSheet'
 import AnnouncementBanner from '../components/AnnouncementBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
 import toast from 'react-hot-toast'
@@ -60,11 +60,8 @@ export default function GuestPage() {
       const [rows, standing] = await Promise.all([fetchSchedule(), fetchStandings()])
       setStandings(standing)
       setSchedule(rows)
-      // Match by email — works once organiser adds an email column to the sheet
-      const found = findRowByEmail(rows, guest.email)
+      const found = findScheduleRowByName(guest.name, standing, rows)
       if (found?.courtNum) {
-        setSheetCourt(found)
-        // Notify if a court was just assigned via the sheet
         setSheetCourt(prev => {
           if (!prev || prev.courtNum !== found.courtNum) {
             toast(`🏟️ คุณถูกกำหนดให้เล่นที่ ${found.courtRaw}! (Match ${found.matchNo})`, { duration: 6000 })
@@ -77,7 +74,7 @@ export default function GuestPage() {
     } catch {
       // sheet fetch failures are non-critical
     }
-  }, [guest.email])
+  }, [guest.name])
 
   useEffect(() => {
     if (!guest.external_id) { nav('/'); return }

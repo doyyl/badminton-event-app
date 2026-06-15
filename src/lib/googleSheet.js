@@ -54,6 +54,31 @@ export function findRowByEmail(rows, email) {
   ) ?? null
 }
 
+// Find the next (non-completed) schedule row for a player by searching their name in standings.
+// standings: { basic: [...], expert: [...] } from fetchStandings()
+// schedule: rows from fetchSchedule()
+export function findScheduleRowByName(name, standings, schedule) {
+  if (!name) return null
+  const needle = name.toLowerCase().trim()
+
+  const allMatches = [...(standings.basic || []), ...(standings.expert || [])]
+
+  // Prefer upcoming matches first, then any match with a court
+  const priority = (m) => (m.completed ? 1 : 0)
+
+  const standingMatch = allMatches
+    .filter(m =>
+      [...m.team1.players, ...m.team2.players].some(p =>
+        p.toLowerCase().trim() === needle
+      )
+    )
+    .sort((a, b) => priority(a) - priority(b))[0]
+
+  if (!standingMatch) return null
+
+  return schedule.find(r => r.matchNo === standingMatch.matchNo) ?? null
+}
+
 // ─── Standings from detailed bracket sheets ───────────────────────────────
 
 const GID_BASIC  = '2007438050'
