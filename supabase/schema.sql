@@ -59,7 +59,7 @@ INSERT INTO food_items (id, name, quota) VALUES
   ('icecream',   'Ice Cream',       1),
   ('fruits',     'Fruits',          1),
   ('energy_bar', 'Energy Bar',      1),
-  ('bbq',        'BBQ',             3),
+  ('bbq',        'BBQ',             1),
   ('beer',       'Beer',            3),
   ('soft_drink', 'Soft Drink',      1),
   ('hydration',  'Hydration Drink', 1),

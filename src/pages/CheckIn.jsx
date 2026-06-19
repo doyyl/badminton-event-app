@@ -6,24 +6,31 @@ import LoadingSpinner from '../components/LoadingSpinner'
 
 const COMPANIES = ['COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'KNS', 'KNT', 'Other']
 const CATEGORIES = ['Basic', 'Expert', 'Substitute', 'Follower']
+const GUEST_PASSWORD = import.meta.env.VITE_GUEST_PASSWORD || 'smash2026'
 
 export default function CheckIn() {
   const nav = useNavigate()
   const [step, setStep] = useState('home') // 'home' | 'email' | 'confirm' | 'walkin'
   const [loading, setLoading] = useState(false)
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [walkinEmail, setWalkinEmail] = useState('')
   const [found, setFound] = useState(null)
   const [walkin, setWalkin] = useState({ name: '', company: 'COV', category: 'Basic' })
 
   async function handleEmailSubmit(e) {
     e.preventDefault()
-    if (!email.trim()) return
+    if (!username.trim()) return
+    if (password !== GUEST_PASSWORD) {
+      toast.error('Incorrect password')
+      return
+    }
     setLoading(true)
     try {
       const { data } = await supabase
         .from('attendees')
         .select('*')
-        .ilike('email', email.trim())
+        .ilike('email', `${username.trim()}@%`)
         .maybeSingle()
 
       if (data) {
@@ -78,7 +85,7 @@ export default function CheckIn() {
         .insert({
           external_id: externalId,
           name: walkin.name.trim(),
-          email: email.trim() || null,
+          email: walkinEmail.trim() || null,
           company: walkin.company,
           category: walkin.category,
           role: walkin.category === 'Follower' ? 'spectator' : 'athlete',
@@ -121,7 +128,7 @@ export default function CheckIn() {
           <h1 className="text-4xl font-black text-white leading-tight">Badminton</h1>
           <h2 className="text-3xl font-black text-primary mt-1">Tournament 2026!</h2>
           <p className="text-white/70 text-sm mt-3">
-            Corporate badminton tournament. Check in with your email to access your pass.
+            Corporate badminton tournament. Log in with your username and password to access your pass.
           </p>
         </div>
 
@@ -131,7 +138,7 @@ export default function CheckIn() {
             onClick={() => setStep('email')}
             className="btn-primary w-full py-4 text-base"
           >
-            <span>→</span> Check in with email
+            <span>→</span> Login to check in
           </button>
 
           <p className="text-center text-xs text-gray-400">or</p>
@@ -180,19 +187,31 @@ export default function CheckIn() {
       <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
         <header className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-200">
           <button onClick={() => setStep('home')} className="text-gray-500 font-medium">←</button>
-          <h2 className="font-bold text-gray-900">Check In</h2>
+          <h2 className="font-bold text-gray-900">Login</h2>
         </header>
         <div className="flex-1 p-4">
           <form onSubmit={handleEmailSubmit} className="space-y-4 mt-4">
             <div>
-              <label className="label">Your Email</label>
+              <label className="label">Username</label>
               <input
                 className="input"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                type="text"
+                placeholder="yourname"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
                 autoFocus
+                required
+              />
+              <p className="text-xs text-gray-400 mt-1">The part of your email before the @</p>
+            </div>
+            <div>
+              <label className="label">Password</label>
+              <input
+                className="input"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 required
               />
             </div>
@@ -269,8 +288,8 @@ export default function CheckIn() {
               className="input"
               type="email"
               placeholder="you@example.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              value={walkinEmail}
+              onChange={e => setWalkinEmail(e.target.value)}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
