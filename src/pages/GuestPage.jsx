@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { fetchSchedule, fetchStandings, findScheduleRowByName } from '../lib/googleSheet'
+import { fetchSchedule, fetchStandings, findPlayerCourtInfo } from '../lib/googleSheet'
 import AnnouncementBanner from '../components/AnnouncementBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
 import toast from 'react-hot-toast'
@@ -16,7 +16,7 @@ export default function GuestPage() {
   const [seatingUrl, setSeatingUrl] = useState('')
   const [courtMatch, setCourtMatch] = useState(null)
   const [schedule, setSchedule] = useState([])
-  const [sheetCourt, setSheetCourt] = useState(null) // { matchNo, courtNum, courtRaw, round, category, time }
+  const [courtInfo, setCourtInfo] = useState(null) // { matches, live, next, allDone } from the schedule sheet
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState('home') // 'home' | 'results' | 'seating' | 'court'
   const scheduleTimerRef = useRef(null)
@@ -60,17 +60,18 @@ export default function GuestPage() {
       const [rows, standing] = await Promise.all([fetchSchedule(), fetchStandings()])
       setStandings(standing)
       setSchedule(rows)
-      const found = findScheduleRowByName(guest.name, standing, rows)
-      if (found?.courtNum) {
-        setSheetCourt(prev => {
-          if (!prev || prev.courtNum !== found.courtNum) {
-            toast(`🏟️ You're assigned to ${found.courtRaw}! (Match ${found.matchNo})`, { duration: 6000 })
-          }
-          return found
-        })
-      } else {
-        setSheetCourt(null)
-      }
+      const info = findPlayerCourtInfo(guest.name, standing, rows)
+      setCourtInfo(prev => {
+        const prevCourt = (prev?.live || prev?.next)?.courtNum
+        const target = info?.live || info?.next
+        if (target?.courtNum && target.courtNum !== prevCourt) {
+          toast(
+            `🏟️ ${info.live ? "You're up now" : 'Up next'} — ${target.courtRaw}! (Match ${target.matchNo})`,
+            { duration: 6000 }
+          )
+        }
+        return info
+      })
     } catch {
       // sheet fetch failures are non-critical
     }
@@ -120,6 +121,9 @@ export default function GuestPage() {
   })
   const foodBadge = allClaimed ? 'DONE' : 'READY'
 
+  // The court to surface first: the live match if any, else the next upcoming one.
+  const courtPrimary = courtInfo?.live || courtInfo?.next || null
+
   function logout() {
     sessionStorage.removeItem('badminton_guest')
     nav('/')
@@ -137,7 +141,7 @@ export default function GuestPage() {
     return <SeatingView url={seatingUrl} onBack={() => setView('home')} />
   }
   if (view === 'court') {
-    return <CourtView match={courtMatch} sheetCourt={sheetCourt} guestId={guest.external_id} onBack={() => setView('home')} nav={nav} />
+    return <CourtView match={courtMatch} courtInfo={courtInfo} guestId={guest.external_id} onBack={() => setView('home')} nav={nav} />
   }
 
   return (
@@ -188,16 +192,20 @@ export default function GuestPage() {
                   <p className="font-semibold text-gray-800">My Court</p>
                   {courtMatch ? (
                     <p className="text-xs text-primary font-bold">Court {courtMatch.court_id}</p>
-                  ) : sheetCourt?.courtNum ? (
-                    <p className="text-xs text-primary font-bold">Court {sheetCourt.courtNum} · Match #{sheetCourt.matchNo}</p>
+                  ) : courtPrimary?.courtNum ? (
+                    <p className={`text-xs font-bold ${courtInfo.live ? 'text-primary' : 'text-amber-600'}`}>
+                      {courtInfo.live ? '🔴 Playing now' : '⏰ Up next'} · {courtPrimary.courtRaw} · Match #{courtPrimary.matchNo}
+                    </p>
+                  ) : courtInfo?.allDone ? (
+                    <p className="text-xs text-green-600 font-bold">✓ All matches finished</p>
                   ) : (
                     <p className="text-xs text-gray-400">No court assigned yet</p>
                   )}
                 </div>
               </div>
-              {courtMatch || sheetCourt?.courtNum ? (
+              {courtMatch || courtPrimary?.courtNum ? (
                 <span className="text-2xl font-black text-primary">
-                  {courtMatch ? courtMatch.court_id : sheetCourt.courtNum}
+                  {courtMatch ? courtMatch.court_id : courtPrimary.courtNum}
                 </span>
               ) : (
                 <span className="text-gray-400">›</span>
@@ -435,9 +443,11 @@ function SeatingView({ url, onBack }) {
   )
 }
 
-function CourtView({ match, sheetCourt, guestId, onBack, nav }) {
-  // Show sheet-based court if no Supabase match yet
-  if (!match && sheetCourt?.courtNum) {
+function CourtView({ match, courtInfo, guestId, onBack, nav }) {
+  // No live Supabase match — fall back to the player's Google-Sheet schedule,
+  // matched by name. Show their current/next court, status and full match list.
+  if (!match && courtInfo) {
+    const primary = courtInfo.live || courtInfo.next
     return (
       <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
         <header className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-200">
@@ -445,22 +455,62 @@ function CourtView({ match, sheetCourt, guestId, onBack, nav }) {
           <h2 className="font-bold text-gray-900">My Court</h2>
         </header>
         <div className="p-4 space-y-4">
-          <div className="card bg-primary/5 border-primary/20 text-center py-6">
-            <p className="text-xs text-primary font-bold uppercase tracking-widest mb-1">Your Court</p>
-            <p className="text-6xl font-black text-gray-900">{sheetCourt.courtNum}</p>
-            <p className="text-sm text-gray-500 mt-2">{sheetCourt.courtRaw}</p>
+          {primary ? (
+            <>
+              <div className={`card text-center py-6 ${courtInfo.live ? 'bg-primary/5 border-primary/20' : 'bg-amber-50 border-amber-200'}`}>
+                <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${courtInfo.live ? 'text-primary' : 'text-amber-600'}`}>
+                  {courtInfo.live ? '🔴 Playing now' : '⏰ Up next — head over'}
+                </p>
+                <p className="text-6xl font-black text-gray-900">{primary.courtNum ?? '—'}</p>
+                <p className="text-sm text-gray-500 mt-2">{primary.courtRaw}</p>
+              </div>
+              <div className="card space-y-2">
+                <p className="text-xs text-gray-400 uppercase tracking-widest font-bold">Match details</p>
+                <p className="font-semibold text-gray-900">Match #{primary.matchNo} · {primary.round}</p>
+                <p className="text-sm text-gray-500">{primary.level}{primary.time ? ` · ${primary.time}` : ''}</p>
+                {primary.opponent && <p className="text-sm text-gray-500">vs {primary.opponent}</p>}
+              </div>
+              {primary.courtNum && (
+                <button
+                  onClick={() => nav(`/court/${primary.courtNum}`)}
+                  className="btn-primary w-full py-4 text-base font-bold"
+                >
+                  📍 Check in at {primary.courtRaw}
+                </button>
+              )}
+              {/* Currently playing? Tell them which court comes next. */}
+              {courtInfo.live && courtInfo.next && (
+                <div className="card">
+                  <p className="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Next court after this</p>
+                  <p className="font-semibold text-gray-900">{courtInfo.next.courtRaw} · Match #{courtInfo.next.matchNo}</p>
+                  <p className="text-sm text-gray-500">{courtInfo.next.round}{courtInfo.next.time ? ` · ${courtInfo.next.time}` : ''}</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="card text-center py-10">
+              <div className="text-5xl mb-2">🎉</div>
+              <p className="font-bold text-lg text-gray-900">All your matches are finished</p>
+              <p className="text-gray-400 text-sm mt-1">Great job today!</p>
+            </div>
+          )}
+
+          {/* Full list of the player's matches with status */}
+          <div className="card p-0 overflow-hidden">
+            <p className="px-4 py-3 text-xs text-gray-400 uppercase tracking-widest font-bold border-b border-gray-100">
+              Your matches
+            </p>
+            {courtInfo.matches.map((m, i) => (
+              <div key={m.matchNo} className={`flex items-center gap-3 px-4 py-3 text-sm ${i > 0 ? 'border-t border-gray-100' : ''}`}>
+                <span className="font-mono text-gray-400 text-xs w-8 shrink-0">#{m.matchNo}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 truncate">{m.round || m.level}</p>
+                  <p className="text-xs text-gray-400">{m.courtRaw || '—'}{m.time ? ` · ${m.time}` : ''}</p>
+                </div>
+                <CourtStatusBadge status={m.status} />
+              </div>
+            ))}
           </div>
-          <div className="card space-y-2">
-            <p className="text-xs text-gray-400 uppercase tracking-widest font-bold">Match details</p>
-            <p className="font-semibold text-gray-900">Match #{sheetCourt.matchNo} · {sheetCourt.round}</p>
-            <p className="text-sm text-gray-500">{sheetCourt.category} · {sheetCourt.time}</p>
-          </div>
-          <button
-            onClick={() => nav(`/court/${sheetCourt.courtNum}`)}
-            className="btn-primary w-full py-4 text-base font-bold"
-          >
-            📍 Check In at {sheetCourt.courtRaw}
-          </button>
         </div>
       </div>
     )
@@ -528,6 +578,20 @@ function CourtView({ match, sheetCourt, guestId, onBack, nav }) {
       </div>
     </div>
   )
+}
+
+function CourtStatusBadge({ status }) {
+  if (status === 'live') {
+    return (
+      <span className="flex items-center gap-1 text-xs font-bold text-primary shrink-0">
+        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse inline-block" />LIVE
+      </span>
+    )
+  }
+  if (status === 'done') {
+    return <span className="text-xs font-bold text-green-600 shrink-0">✓ Done</span>
+  }
+  return <span className="text-xs font-semibold text-amber-500 shrink-0">Upcoming</span>
 }
 
 function StandingsSection({ level, matches }) {

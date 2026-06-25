@@ -79,6 +79,53 @@ export function findScheduleRowByName(name, standings, schedule) {
   return schedule.find(r => r.matchNo === standingMatch.matchNo) ?? null
 }
 
+// Build a player's full court picture by matching their name (from the
+// attendees `name` column) against the standings sheets, then joining each
+// match to the schedule sheet for its live/upcoming/done status.
+// Returns: { matches, live, next, allDone } or null when the name isn't found.
+//   matches  — every match the player is in, sorted by match number
+//   live     — the match they're playing right now (status 'live'), or null
+//   next     — the next match they still need to go to (status 'upcoming'), or null
+//   allDone  — true when every match of theirs is finished
+export function findPlayerCourtInfo(name, standings, schedule) {
+  if (!name) return null
+  const needle = name.toLowerCase().trim()
+  const allMatches = [...(standings.basic || []), ...(standings.expert || [])]
+
+  const matches = allMatches
+    .filter(m =>
+      [...m.team1.players, ...m.team2.players].some(p => p.toLowerCase().trim() === needle)
+    )
+    .map(m => {
+      const sched = schedule.find(r => r.matchNo === m.matchNo)
+      const courtNum = sched?.courtNum ?? (parseInt(String(m.court).replace(/[^\d]/g, '')) || null)
+      const courtRaw = sched?.courtRaw || m.court || (courtNum ? `Court ${courtNum}` : '')
+      const status = sched?.status || (m.completed ? 'done' : 'upcoming')
+      const inTeam1 = m.team1.players.some(p => p.toLowerCase().trim() === needle)
+      const opp = inTeam1 ? m.team2 : m.team1
+      return {
+        matchNo: m.matchNo,
+        round: m.round || sched?.round || '',
+        level: m.level,
+        time: m.time || sched?.time || '',
+        status,
+        completed: m.completed,
+        courtNum,
+        courtRaw,
+        opponent: opp.team || opp.players.join(' / ') || '',
+      }
+    })
+    .sort((a, b) => a.matchNo - b.matchNo)
+
+  if (matches.length === 0) return null
+
+  const live = matches.find(m => m.status === 'live') || null
+  const next = matches.find(m => m.status === 'upcoming') || null
+  const allDone = matches.every(m => m.status === 'done' || m.completed)
+
+  return { matches, live, next, allDone }
+}
+
 // ─── Standings from detailed bracket sheets ───────────────────────────────
 
 const GID_BASIC  = '2007438050'
