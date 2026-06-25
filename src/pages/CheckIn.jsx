@@ -21,12 +21,24 @@ export default function CheckIn() {
     if (!username.trim()) return
     setLoading(true)
     try {
-      const { data } = await supabase
+      // ILIKE may match multiple rows (duplicate emails / repeat walk-ins), so
+      // never use .maybeSingle() here — it 406s on >1 match and would dump the
+      // user into walk-in registration, spawning yet another duplicate row.
+      // Prefer an already-checked-in row so re-login lands on the existing pass.
+      const { data: matches, error } = await supabase
         .from('attendees')
         .select('*')
         .ilike('email', `${username.trim()}@%`)
-        .maybeSingle()
+        .order('checked_in', { ascending: false })
+        .order('external_id', { ascending: true })
+        .limit(1)
 
+      if (error) {
+        toast.error('Login failed, please try again')
+        return
+      }
+
+      const data = matches?.[0]
       if (data) {
         if (data.checked_in) {
           toast('Already checked in as ' + data.name, { icon: '✅' })
