@@ -6,15 +6,22 @@ import LoadingSpinner from '../components/LoadingSpinner'
 
 const COMPANIES = ['COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'KNS', 'KNT', 'Other']
 const CATEGORIES = ['Basic', 'Expert', 'Substitute', 'Follower']
+const REMEMBER_KEY = 'badminton_username'
 
 export default function CheckIn() {
   const nav = useNavigate()
   const [step, setStep] = useState('home') // 'home' | 'email' | 'confirm' | 'walkin'
   const [loading, setLoading] = useState(false)
-  const [username, setUsername] = useState('')
+  const [username, setUsername] = useState(() => localStorage.getItem(REMEMBER_KEY) || '')
   const [walkinEmail, setWalkinEmail] = useState('')
   const [found, setFound] = useState(null)
   const [walkin, setWalkin] = useState({ name: '', company: 'COV', category: 'Basic' })
+
+  // An existing guest session means the user came back (e.g. browser back) without
+  // logging out — offer a one-tap continue instead of forcing a fresh login.
+  const rememberedGuest = (() => {
+    try { return JSON.parse(sessionStorage.getItem('badminton_guest') || 'null') } catch { return null }
+  })()
 
   async function handleEmailSubmit(e) {
     e.preventDefault()
@@ -122,6 +129,9 @@ export default function CheckIn() {
       role: data.role,
       company: data.company,
     }))
+    // Remember the username so returning users don't have to retype it.
+    const remembered = data.email ? data.email.split('@')[0] : username.trim()
+    if (remembered) localStorage.setItem(REMEMBER_KEY, remembered)
   }
 
   // Home screen
@@ -140,11 +150,20 @@ export default function CheckIn() {
 
         {/* Actions */}
         <div className="flex-1 px-4 py-6 space-y-3">
+          {rememberedGuest?.external_id && (
+            <button
+              onClick={() => nav('/guest')}
+              className="btn-primary w-full py-4 text-base"
+            >
+              <span>→</span> เข้าต่อในชื่อ {rememberedGuest.name}
+            </button>
+          )}
+
           <button
             onClick={() => setStep('email')}
-            className="btn-primary w-full py-4 text-base"
+            className={rememberedGuest?.external_id ? 'btn-secondary w-full' : 'btn-primary w-full py-4 text-base'}
           >
-            <span>→</span> Login to check in
+            {rememberedGuest?.external_id ? 'เข้าสู่ระบบด้วยชื่ออื่น' : <><span>→</span> Login to check in</>}
           </button>
 
           <p className="text-center text-xs text-gray-400">or</p>
@@ -192,7 +211,9 @@ export default function CheckIn() {
     return (
       <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
         <header className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-200">
-          <button onClick={() => setStep('home')} className="text-gray-500 font-medium">←</button>
+          <button onClick={() => setStep('home')} className="flex items-center gap-1 text-gray-600 font-semibold">
+            <span className="text-lg">←</span> Back
+          </button>
           <h2 className="font-bold text-gray-900">Login</h2>
         </header>
         <div className="flex-1 p-4">
@@ -230,7 +251,9 @@ export default function CheckIn() {
     return (
       <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
         <header className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-200">
-          <button onClick={() => { setStep('email'); setFound(null) }} className="text-gray-500">←</button>
+          <button onClick={() => { setStep('email'); setFound(null) }} className="flex items-center gap-1 text-gray-600 font-semibold">
+            <span className="text-lg">←</span> Back
+          </button>
           <h2 className="font-bold text-gray-900">Confirm Check-In</h2>
         </header>
         <div className="p-4 space-y-4 mt-4">
@@ -261,7 +284,9 @@ export default function CheckIn() {
   return (
     <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
       <header className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-200">
-        <button onClick={() => setStep('home')} className="text-gray-500">←</button>
+        <button onClick={() => setStep('home')} className="flex items-center gap-1 text-gray-600 font-semibold">
+          <span className="text-lg">←</span> Back
+        </button>
         <h2 className="font-bold text-gray-900">Walk-In Registration</h2>
       </header>
       <div className="flex-1 p-4">

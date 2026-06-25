@@ -249,11 +249,14 @@ export default function GuestPage() {
       </div>
 
       {/* Footer */}
-      <div className="px-4 pb-6 text-center space-y-1">
-        <p className="text-xs text-gray-400">Pass ID · {guest.external_id}</p>
-        <button onClick={logout} className="text-xs text-gray-400 hover:text-gray-600 underline">
-          Exit
+      <div className="px-4 pb-6 space-y-3">
+        <button
+          onClick={logout}
+          className="btn-secondary w-full text-gray-700 border-gray-300"
+        >
+          🚪 ออกจากระบบ / Log out
         </button>
+        <p className="text-center text-xs text-gray-400">Pass ID · {guest.external_id}</p>
       </div>
     </div>
   )
