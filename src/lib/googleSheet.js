@@ -90,20 +90,34 @@ export function findScheduleRowByName(name, standings, schedule) {
 export function findPlayerCourtInfo(name, standings, schedule) {
   if (!name) return null
   const needle = name.toLowerCase().trim()
-  const needleFirst = needle.split(/\s+/)[0]
+  const needleTokens = needle.split(/\s+/).filter(Boolean)
+  const needleFirst = needleTokens[0] || ''
+  const needleLast = needleTokens[needleTokens.length - 1] || ''
   const allMatches = [...(standings.basic || []), ...(standings.expert || [])]
 
   const norm = p => p.toLowerCase().trim()
-  const firstOf = p => norm(p).split(/\s+/)[0]
+  const tokensOf = p => norm(p).split(/\s+/).filter(Boolean)
+  const firstOf = p => tokensOf(p)[0] || ''
+  const lastOf = p => { const t = tokensOf(p); return t[t.length - 1] || '' }
   const playersOf = m => [...m.team1.players, ...m.team2.players]
 
-  // Match on the exact full name first; if nothing hits, fall back to
-  // first-name-only (handles nickname vs full name, missing surnames, etc.).
-  let isMe = p => norm(p) === needle
-  let mine = allMatches.filter(m => playersOf(m).some(isMe))
-  if (mine.length === 0 && needleFirst) {
-    isMe = p => firstOf(p) === needleFirst
-    mine = allMatches.filter(m => playersOf(m).some(isMe))
+  // Try progressively looser matchers, stopping at the first that hits anything:
+  //   1. exact full name
+  //   2. first + last name (handles middle names / extra tokens)
+  //   3. first name only (handles nickname vs full name, missing surnames)
+  const matchers = [p => norm(p) === needle]
+  if (needleTokens.length >= 2) {
+    matchers.push(p => firstOf(p) === needleFirst && lastOf(p) === needleLast)
+  }
+  if (needleFirst) {
+    matchers.push(p => firstOf(p) === needleFirst)
+  }
+
+  let isMe = matchers[0]
+  let mine = []
+  for (const matcher of matchers) {
+    mine = allMatches.filter(m => playersOf(m).some(matcher))
+    if (mine.length > 0) { isMe = matcher; break }
   }
 
   const matches = mine
