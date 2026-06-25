@@ -13,6 +13,7 @@ import AdminLayout from './pages/admin/AdminLayout'
 const ScanPage         = lazy(() => import('./pages/ScanPage'))
 const FoodPage         = lazy(() => import('./pages/FoodPage'))
 const ResultsPage      = lazy(() => import('./pages/ResultsPage'))
+const BracketPage      = lazy(() => import('./pages/BracketPage'))
 const RefereePage      = lazy(() => import('./pages/RefereePage'))
 const RefereeCourtPage = lazy(() => import('./pages/RefereeCourtPage'))
 const CourtCheckinPage = lazy(() => import('./pages/CourtCheckinPage'))
@@ -61,6 +62,7 @@ export default function App() {
           <Route path="/guest/scan" element={<GuestGuard><ScanPage /></GuestGuard>} />
           <Route path="/guest/food" element={<GuestGuard><FoodPage /></GuestGuard>} />
           <Route path="/results" element={<ResultsPage />} />
+          <Route path="/bracket" element={<BracketPage />} />
           <Route path="/court/:courtId" element={<CourtCheckinPage />} />
           <Route path="/referee" element={<RefereePage />} />
           <Route path="/referee/:courtId" element={<RefereeCourtPage />} />

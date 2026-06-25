@@ -1,0 +1,207 @@
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { fetchSchedule, fetchStandings } from '../lib/googleSheet'
+import LoadingSpinner from '../components/LoadingSpinner'
+
+const LEVELS = [
+  { key: 'expert', label: 'Expert' },
+  { key: 'basic', label: 'Beginner' },
+]
+
+// More teams = earlier round = further left. Numbered "รอบ N ทีม" sort by team
+// count descending; finals keywords fall to the right.
+function roundRank(name) {
+  const n = name.match(/(\d+)\s*ทีม/)
+  if (n) return 10000 - parseInt(n[1], 10)
+  if (/ชิง/.test(name)) return 30000
+  if (/รอง/.test(name)) return 25000
+  return 20000
+}
+
+function roundLabel(name) {
+  const n = name.match(/(\d+)\s*ทีม/)
+  if (n) return `Round of ${n[1]}`
+  if (/ชิง/.test(name)) return 'Final'
+  if (/รอง/.test(name)) return 'Semifinal'
+  if (/น้อก/.test(name)) return 'Knockout'
+  return name
+}
+
+// Group a level's matches into round columns ordered left-to-right.
+function buildColumns(matches) {
+  const byRound = new Map()
+  for (const m of matches) {
+    const r = m.round || 'อื่นๆ'
+    if (!byRound.has(r)) byRound.set(r, [])
+    byRound.get(r).push(m)
+  }
+  return [...byRound.entries()]
+    .map(([round, ms]) => ({ round, matches: ms }))
+    .sort((a, b) => roundRank(a.round) - roundRank(b.round))
+}
+
+export default function BracketPage() {
+  const nav = useNavigate()
+  const [standings, setStandings] = useState({ basic: [], expert: [] })
+  const [statusByNo, setStatusByNo] = useState({})
+  const [level, setLevel] = useState('expert')
+  const [loading, setLoading] = useState(true)
+  const [updatedAt, setUpdatedAt] = useState(null)
+  const timerRef = useRef(null)
+
+  async function load() {
+    try {
+      const [standing, schedule] = await Promise.all([fetchStandings(), fetchSchedule()])
+      setStandings(standing)
+      setStatusByNo(Object.fromEntries(schedule.map(r => [r.matchNo, r.status])))
+      setUpdatedAt(new Date())
+    } catch {
+      // sheet hiccups are non-fatal — keep showing the last good board
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    load()
+    timerRef.current = setInterval(load, 30_000)
+    return () => clearInterval(timerRef.current)
+  }, [])
+
+  const matches = standings[level] || []
+  const columns = buildColumns(matches)
+  const liveCount = matches.filter(m => statusByNo[m.matchNo] === 'live').length
+
+  return (
+    <div className="min-h-dvh flex flex-col bg-gray-50">
+      {/* Top bar */}
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-4 sticky top-0 z-10">
+        <button onClick={() => nav('/admin/dashboard')} className="text-gray-400 hover:text-gray-700 text-sm">←</button>
+        <div className="flex items-center gap-2">
+          <img src="/logo.svg" alt="" className="h-7 w-7" onError={e => { e.currentTarget.style.display = 'none' }} />
+          <h1 className="font-black text-gray-900 text-lg sm:text-xl">Tournament Bracket</h1>
+        </div>
+
+        {/* Level toggle */}
+        <div className="flex bg-gray-100 rounded-xl p-1 ml-2">
+          {LEVELS.map(l => (
+            <button
+              key={l.key}
+              onClick={() => setLevel(l.key)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-colors ${
+                level === l.key ? 'bg-primary text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="ml-auto flex items-center gap-3">
+          {liveCount > 0 && (
+            <span className="flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse inline-block" />
+              {liveCount} LIVE
+            </span>
+          )}
+          {updatedAt && (
+            <span className="hidden sm:inline text-xs text-gray-400">Updated {updatedAt.toLocaleTimeString()}</span>
+          )}
+          <button onClick={load} className="text-gray-400 hover:text-primary text-lg font-bold" title="Refresh">↻</button>
+        </div>
+      </header>
+
+      {/* Board */}
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <LoadingSpinner size="lg" />
+        </div>
+      ) : columns.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-center gap-3 p-8">
+          <div className="text-5xl">🏸</div>
+          <p className="font-bold text-lg text-gray-900">No bracket data yet</p>
+          <p className="text-gray-400 text-sm">Matches will appear here as the schedule sheet fills in.</p>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-x-auto">
+          <div className="flex gap-5 p-6 items-start min-h-full">
+            {columns.map(col => (
+              <section key={col.round} className="shrink-0 w-72">
+                <div className="sticky top-0 mb-3">
+                  <div className="rounded-xl bg-gray-900 text-white px-4 py-2.5 text-center shadow-sm">
+                    <p className="font-black text-sm uppercase tracking-wide">{roundLabel(col.round)}</p>
+                    <p className="text-[11px] text-white/50">{col.matches.length} matches</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {col.matches.map(m => (
+                    <BracketMatch key={m.matchNo} m={m} status={statusByNo[m.matchNo]} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function BracketMatch({ m, status }) {
+  const hasScores = m.team1.scores.some(s => s > 0) || m.team2.scores.some(s => s > 0)
+  const rows = [
+    { t: m.team1, opp: m.team2 },
+    { t: m.team2, opp: m.team1 },
+  ]
+
+  return (
+    <div className={`rounded-xl border bg-white overflow-hidden shadow-sm ${status === 'live' ? 'border-primary ring-1 ring-primary/30' : 'border-gray-200'}`}>
+      {/* Meta row */}
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border-b border-gray-100 text-[11px] text-gray-400">
+        <span className="font-mono font-bold text-gray-500">#{m.matchNo}</span>
+        {m.time && <span>{m.time}</span>}
+        <span className="ml-auto flex items-center gap-2">
+          {m.court && <span className="bg-gray-200 text-gray-600 px-1.5 rounded font-semibold">{m.court}</span>}
+          {status === 'live' && (
+            <span className="flex items-center gap-1 text-primary font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse inline-block" />LIVE
+            </span>
+          )}
+          {status === 'done' && <span className="text-green-600 font-bold">✓ Done</span>}
+        </span>
+      </div>
+
+      {/* Team rows */}
+      {rows.map((r, i) => {
+        const isWin = m.winner && r.t.team === m.winner
+        return (
+          <div
+            key={i}
+            className={`flex items-center gap-2 px-3 py-2 ${i ? 'border-t border-gray-100' : ''} ${isWin ? 'bg-green-50' : ''}`}
+          >
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm font-bold truncate ${isWin ? 'text-green-700' : r.t.team ? 'text-gray-800' : 'text-gray-300'}`}>
+                {r.t.team || 'TBD'}{isWin && ' 🏆'}
+              </p>
+              {r.t.players.length > 0 && (
+                <p className="text-[11px] text-gray-400 truncate">{r.t.players.join(' / ')}</p>
+              )}
+            </div>
+            {hasScores && (
+              <div className="flex gap-0.5 shrink-0">
+                {r.t.scores.map((s, gi) => (
+                  <span
+                    key={gi}
+                    className={`text-sm font-black w-5 text-center ${s > (r.opp.scores[gi] || 0) ? 'text-green-600' : 'text-gray-300'}`}
+                  >
+                    {s || 0}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
