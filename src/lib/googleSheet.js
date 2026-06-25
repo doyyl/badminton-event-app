@@ -90,18 +90,29 @@ export function findScheduleRowByName(name, standings, schedule) {
 export function findPlayerCourtInfo(name, standings, schedule) {
   if (!name) return null
   const needle = name.toLowerCase().trim()
+  const needleFirst = needle.split(/\s+/)[0]
   const allMatches = [...(standings.basic || []), ...(standings.expert || [])]
 
-  const matches = allMatches
-    .filter(m =>
-      [...m.team1.players, ...m.team2.players].some(p => p.toLowerCase().trim() === needle)
-    )
+  const norm = p => p.toLowerCase().trim()
+  const firstOf = p => norm(p).split(/\s+/)[0]
+  const playersOf = m => [...m.team1.players, ...m.team2.players]
+
+  // Match on the exact full name first; if nothing hits, fall back to
+  // first-name-only (handles nickname vs full name, missing surnames, etc.).
+  let isMe = p => norm(p) === needle
+  let mine = allMatches.filter(m => playersOf(m).some(isMe))
+  if (mine.length === 0 && needleFirst) {
+    isMe = p => firstOf(p) === needleFirst
+    mine = allMatches.filter(m => playersOf(m).some(isMe))
+  }
+
+  const matches = mine
     .map(m => {
       const sched = schedule.find(r => r.matchNo === m.matchNo)
       const courtNum = sched?.courtNum ?? (parseInt(String(m.court).replace(/[^\d]/g, '')) || null)
       const courtRaw = sched?.courtRaw || m.court || (courtNum ? `Court ${courtNum}` : '')
       const status = sched?.status || (m.completed ? 'done' : 'upcoming')
-      const inTeam1 = m.team1.players.some(p => p.toLowerCase().trim() === needle)
+      const inTeam1 = m.team1.players.some(isMe)
       const opp = inTeam1 ? m.team2 : m.team1
       return {
         matchNo: m.matchNo,
