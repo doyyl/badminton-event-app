@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchSchedule, fetchStandings } from '../lib/googleSheet'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -40,6 +40,37 @@ function buildColumns(matches) {
     .sort((a, b) => roundRank(a.round) - roundRank(b.round))
 }
 
+// The sheet doesn't say which match a winner advances to, but the winner's name
+// reappears in a later-round match — so connect matches that share a player name
+// across columns. Each player's progression draws one link per round it crosses.
+function computeConnections(columns) {
+  const nameToEntries = new Map()
+  columns.forEach((col, ci) => {
+    col.matches.forEach(m => {
+      const names = [...m.team1.players, ...m.team2.players]
+        .map(p => p.toLowerCase().trim())
+        .filter(Boolean)
+      for (const n of names) {
+        if (!nameToEntries.has(n)) nameToEntries.set(n, [])
+        nameToEntries.get(n).push({ matchNo: m.matchNo, col: ci })
+      }
+    })
+  })
+
+  const conns = new Set()
+  for (const entries of nameToEntries.values()) {
+    const sorted = entries.sort((a, b) => a.col - b.col)
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const a = sorted[i], b = sorted[i + 1]
+      if (a.col !== b.col) conns.add(`${a.matchNo}->${b.matchNo}`)
+    }
+  }
+  return [...conns].map(s => {
+    const [from, to] = s.split('->').map(Number)
+    return { from, to }
+  })
+}
+
 export default function BracketPage() {
   const nav = useNavigate()
   const [standings, setStandings] = useState({ basic: [], expert: [] })
@@ -48,6 +79,11 @@ export default function BracketPage() {
   const [loading, setLoading] = useState(true)
   const [updatedAt, setUpdatedAt] = useState(null)
   const timerRef = useRef(null)
+
+  const boardRef = useRef(null)
+  const cardRefs = useRef(new Map())
+  const [lines, setLines] = useState([])
+  const [svgSize, setSvgSize] = useState({ w: 0, h: 0 })
 
   async function load() {
     try {
@@ -68,14 +104,57 @@ export default function BracketPage() {
     return () => clearInterval(timerRef.current)
   }, [])
 
-  const matches = standings[level] || []
-  const columns = buildColumns(matches)
-  const liveCount = matches.filter(m => statusByNo[m.matchNo] === 'live').length
+  const { columns, connections } = useMemo(() => {
+    const cols = buildColumns(standings[level] || [])
+    return { columns: cols, connections: computeConnections(cols) }
+  }, [standings, level])
+
+  const liveCount = (standings[level] || []).filter(m => statusByNo[m.matchNo] === 'live').length
+
+  // Measure card positions and turn each connection into an SVG curve.
+  const recompute = useCallback(() => {
+    const board = boardRef.current
+    if (!board) return
+    const bRect = board.getBoundingClientRect()
+    const next = []
+    for (const { from, to } of connections) {
+      const a = cardRefs.current.get(from)
+      const b = cardRefs.current.get(to)
+      if (!a || !b) continue
+      const ar = a.getBoundingClientRect()
+      const br = b.getBoundingClientRect()
+      next.push({
+        x1: ar.right - bRect.left,
+        y1: ar.top + ar.height / 2 - bRect.top,
+        x2: br.left - bRect.left,
+        y2: br.top + br.height / 2 - bRect.top,
+      })
+    }
+    setLines(next)
+    setSvgSize({ w: board.scrollWidth, h: board.scrollHeight })
+  }, [connections])
+
+  useLayoutEffect(() => {
+    recompute()
+    const id = requestAnimationFrame(recompute) // re-measure once layout/fonts settle
+    return () => cancelAnimationFrame(id)
+  }, [recompute, columns])
+
+  useEffect(() => {
+    const onResize = () => recompute()
+    window.addEventListener('resize', onResize)
+    const ro = new ResizeObserver(() => recompute())
+    if (boardRef.current) ro.observe(boardRef.current)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      ro.disconnect()
+    }
+  }, [recompute])
 
   return (
     <div className="min-h-dvh flex flex-col bg-gray-50">
       {/* Top bar */}
-      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-4 sticky top-0 z-10">
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-4 sticky top-0 z-20">
         <button onClick={() => nav('/admin/dashboard')} className="text-gray-400 hover:text-gray-700 text-sm">←</button>
         <div className="flex items-center gap-2">
           <img src="/logo.svg" alt="" className="h-7 w-7" onError={e => { e.currentTarget.style.display = 'none' }} />
@@ -123,23 +202,51 @@ export default function BracketPage() {
           <p className="text-gray-400 text-sm">Matches will appear here as the schedule sheet fills in.</p>
         </div>
       ) : (
-        <div className="flex-1 overflow-x-auto">
-          <div className="flex gap-5 p-6 items-start min-h-full">
-            {columns.map(col => (
-              <section key={col.round} className="shrink-0 w-72">
-                <div className="sticky top-0 mb-3">
-                  <div className="rounded-xl bg-gray-900 text-white px-4 py-2.5 text-center shadow-sm">
+        <div className="flex-1 overflow-auto">
+          <div ref={boardRef} className="relative w-max min-h-full">
+            {/* Connector lines — drawn behind the cards */}
+            <svg
+              className="absolute inset-0 pointer-events-none z-0"
+              width={svgSize.w}
+              height={svgSize.h}
+            >
+              {lines.map((l, i) => {
+                const dx = Math.max(24, (l.x2 - l.x1) / 2)
+                return (
+                  <path
+                    key={i}
+                    d={`M${l.x1},${l.y1} C${l.x1 + dx},${l.y1} ${l.x2 - dx},${l.y2} ${l.x2},${l.y2}`}
+                    fill="none"
+                    stroke="#94a3b8"
+                    strokeWidth="2"
+                  />
+                )
+              })}
+            </svg>
+
+            <div className="flex gap-8 p-6 items-start relative z-10">
+              {columns.map(col => (
+                <section key={col.round} className="shrink-0 w-72">
+                  <div className="mb-3 rounded-xl bg-gray-900 text-white px-4 py-2.5 text-center shadow-sm">
                     <p className="font-black text-sm uppercase tracking-wide">{roundLabel(col.round)}</p>
                     <p className="text-[11px] text-white/50">{col.matches.length} matches</p>
                   </div>
-                </div>
-                <div className="space-y-3">
-                  {col.matches.map(m => (
-                    <BracketMatch key={m.matchNo} m={m} status={statusByNo[m.matchNo]} />
-                  ))}
-                </div>
-              </section>
-            ))}
+                  <div className="space-y-4">
+                    {col.matches.map(m => (
+                      <BracketMatch
+                        key={m.matchNo}
+                        m={m}
+                        status={statusByNo[m.matchNo]}
+                        innerRef={el => {
+                          if (el) cardRefs.current.set(m.matchNo, el)
+                          else cardRefs.current.delete(m.matchNo)
+                        }}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -147,7 +254,7 @@ export default function BracketPage() {
   )
 }
 
-function BracketMatch({ m, status }) {
+function BracketMatch({ m, status, innerRef }) {
   const hasScores = m.team1.scores.some(s => s > 0) || m.team2.scores.some(s => s > 0)
   const rows = [
     { t: m.team1, opp: m.team2 },
@@ -155,7 +262,10 @@ function BracketMatch({ m, status }) {
   ]
 
   return (
-    <div className={`rounded-xl border bg-white overflow-hidden shadow-sm ${status === 'live' ? 'border-primary ring-1 ring-primary/30' : 'border-gray-200'}`}>
+    <div
+      ref={innerRef}
+      className={`rounded-xl border bg-white overflow-hidden shadow-sm ${status === 'live' ? 'border-primary ring-1 ring-primary/30' : 'border-gray-200'}`}
+    >
       {/* Meta row */}
       <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border-b border-gray-100 text-[11px] text-gray-400">
         <span className="font-mono font-bold text-gray-500">#{m.matchNo}</span>
