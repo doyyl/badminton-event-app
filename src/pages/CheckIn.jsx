@@ -142,14 +142,14 @@ export default function CheckIn() {
         <div className="relative overflow-hidden bg-gradient-to-b from-slate-400 to-slate-300 px-6 pt-12 pb-10 text-center">
           {/* Background image (falls back to the slate gradient if it fails to load) */}
           <img
-            src="https://i.ibb.co/yF29YLV2/3.png"
+            src="https://i.ibb.co/rKvZCmxQ/Fun.png"
             alt=""
             aria-hidden="true"
             className="absolute inset-0 h-full w-full object-cover"
             onError={e => { e.currentTarget.style.display = 'none' }}
           />
-          {/* Dark scrim keeps the white/red text legible over any image */}
-          <div className="absolute inset-0 bg-black/35" aria-hidden="true" />
+          {/* Light scrim keeps the white/red text legible over any image */}
+          <div className="absolute inset-0 bg-black/10" aria-hidden="true" />
 
           <div className="relative">
             <img
