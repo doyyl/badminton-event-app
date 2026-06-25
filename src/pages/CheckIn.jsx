@@ -41,14 +41,14 @@ export default function CheckIn() {
         .limit(1)
 
       if (error) {
-        toast.error('Login failed, please try again')
+        toast.error('เข้าสู่ระบบไม่สำเร็จ ลองอีกครั้ง')
         return
       }
 
       const data = matches?.[0]
       if (data) {
         if (data.checked_in) {
-          toast('Already checked in as ' + data.name, { icon: '✅' })
+          toast('เช็คอินแล้วในชื่อ ' + data.name, { icon: '✅' })
           saveGuest(data)
           nav('/guest')
           return
@@ -70,7 +70,7 @@ export default function CheckIn() {
         .from('attendees')
         .update({ checked_in: true, check_in_time: new Date().toISOString() })
         .eq('id', found.id)
-      toast.success('Welcome, ' + found.name + '!')
+      toast.success('ยินดีต้อนรับ, ' + found.name + '!')
       saveGuest({ ...found, checked_in: true })
       nav('/guest')
     } finally {
@@ -110,12 +110,12 @@ export default function CheckIn() {
         .single()
 
       if (error) throw error
-      toast.success('Welcome, ' + data.name + '!')
+      toast.success('ยินดีต้อนรับ, ' + data.name + '!')
       saveGuest(data)
       nav('/guest')
     } catch (err) {
       console.error('Registration error:', err)
-      toast.error(err?.message || 'Registration failed. Try again.')
+      toast.error(err?.message || 'ลงทะเบียนไม่สำเร็จ ลองอีกครั้ง')
     } finally {
       setLoading(false)
     }
@@ -144,7 +144,7 @@ export default function CheckIn() {
           <h1 className="text-4xl font-black text-white leading-tight">Badminton</h1>
           <h2 className="text-3xl font-black text-primary mt-1">Tournament 2026!</h2>
           <p className="text-white/70 text-sm mt-3">
-            Corporate badminton tournament. Log in with your username to access your pass.
+            ทัวร์นาเมนต์แบดมินตันองค์กร — เข้าสู่ระบบด้วยชื่อผู้ใช้เพื่อดูบัตรของคุณ
           </p>
         </div>
 
@@ -160,27 +160,32 @@ export default function CheckIn() {
           )}
 
           <button
-            onClick={() => setStep('email')}
+            onClick={() => {
+              // Coming from a one-tap continue, the username is still the previous
+              // guest's — clear it so "log in as someone else" starts blank.
+              if (rememberedGuest?.external_id) setUsername('')
+              setStep('email')
+            }}
             className={rememberedGuest?.external_id ? 'btn-secondary w-full' : 'btn-primary w-full py-4 text-base'}
           >
-            {rememberedGuest?.external_id ? 'เข้าสู่ระบบด้วยชื่ออื่น' : <><span>→</span> Login to check in</>}
+            {rememberedGuest?.external_id ? 'เข้าสู่ระบบด้วยชื่ออื่น' : <><span>→</span> เข้าสู่ระบบเพื่อเช็คอิน</>}
           </button>
 
-          <p className="text-center text-xs text-gray-400">or</p>
+          <p className="text-center text-xs text-gray-400">หรือ</p>
 
           <button
             onClick={() => setStep('walkin')}
             className="btn-secondary w-full"
           >
-            Walk-in Registration
+            ลงทะเบียนหน้างาน (Walk-in)
           </button>
 
           <div className="pt-4 space-y-2">
-            <p className="section-label">Event Info</p>
+            <p className="section-label">ข้อมูลงาน</p>
             <button onClick={() => nav('/results')} className="nav-item text-left">
               <div className="flex items-center gap-3">
                 <span className="text-lg">🏆</span>
-                <span className="font-semibold text-gray-800">Live results</span>
+                <span className="font-semibold text-gray-800">ผลการแข่งขันสด</span>
               </div>
               <span className="text-gray-400">›</span>
             </button>
@@ -212,14 +217,14 @@ export default function CheckIn() {
       <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
         <header className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-200">
           <button onClick={() => setStep('home')} className="flex items-center gap-1 text-gray-600 font-semibold">
-            <span className="text-lg">←</span> Back
+            <span className="text-lg">←</span> ย้อนกลับ
           </button>
-          <h2 className="font-bold text-gray-900">Login</h2>
+          <h2 className="font-bold text-gray-900">เข้าสู่ระบบ</h2>
         </header>
         <div className="flex-1 p-4">
           <form onSubmit={handleEmailSubmit} className="space-y-4 mt-4">
             <div>
-              <label className="label">Username</label>
+              <label className="label">ชื่อผู้ใช้</label>
               <input
                 className="input"
                 type="text"
@@ -229,15 +234,15 @@ export default function CheckIn() {
                 autoFocus
                 required
               />
-              <p className="text-xs text-gray-400 mt-1">The part of your email before the @</p>
+              <p className="text-xs text-gray-400 mt-1">ส่วนที่อยู่หน้า @ ในอีเมลของคุณ</p>
             </div>
             <button type="submit" className="btn-primary w-full" disabled={loading}>
-              {loading ? <LoadingSpinner size="sm" /> : 'Continue →'}
+              {loading ? <LoadingSpinner size="sm" /> : 'ดำเนินการต่อ →'}
             </button>
             <p className="text-center text-sm text-gray-500">
-              Not registered?{' '}
+              ยังไม่ได้ลงทะเบียน?{' '}
               <button type="button" className="text-primary font-semibold" onClick={() => setStep('walkin')}>
-                Walk-in here
+                ลงทะเบียนหน้างาน
               </button>
             </p>
           </form>
@@ -252,9 +257,9 @@ export default function CheckIn() {
       <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
         <header className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-200">
           <button onClick={() => { setStep('email'); setFound(null) }} className="flex items-center gap-1 text-gray-600 font-semibold">
-            <span className="text-lg">←</span> Back
+            <span className="text-lg">←</span> ย้อนกลับ
           </button>
-          <h2 className="font-bold text-gray-900">Confirm Check-In</h2>
+          <h2 className="font-bold text-gray-900">ยืนยันการเช็คอิน</h2>
         </header>
         <div className="p-4 space-y-4 mt-4">
           <div className="card space-y-4">
@@ -268,12 +273,12 @@ export default function CheckIn() {
               </div>
             </div>
             <div className="text-sm text-gray-500 space-y-1 bg-gray-50 rounded-xl p-3">
-              <p>ID: <span className="text-gray-900 font-mono font-semibold">{found.external_id}</span></p>
-              <p>Role: <span className="text-gray-900 capitalize">{found.role}</span></p>
+              <p>รหัส: <span className="text-gray-900 font-mono font-semibold">{found.external_id}</span></p>
+              <p>บทบาท: <span className="text-gray-900 capitalize">{found.role}</span></p>
             </div>
           </div>
           <button className="btn-primary w-full" onClick={handleConfirmCheckIn} disabled={loading}>
-            {loading ? <LoadingSpinner size="sm" /> : '✅ Confirm Check-In'}
+            {loading ? <LoadingSpinner size="sm" /> : '✅ ยืนยันการเช็คอิน'}
           </button>
         </div>
       </div>
@@ -285,17 +290,17 @@ export default function CheckIn() {
     <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
       <header className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-200">
         <button onClick={() => setStep('home')} className="flex items-center gap-1 text-gray-600 font-semibold">
-          <span className="text-lg">←</span> Back
+          <span className="text-lg">←</span> ย้อนกลับ
         </button>
-        <h2 className="font-bold text-gray-900">Walk-In Registration</h2>
+        <h2 className="font-bold text-gray-900">ลงทะเบียนหน้างาน</h2>
       </header>
       <div className="flex-1 p-4">
         <form onSubmit={handleWalkInSubmit} className="space-y-4 mt-4">
           <div>
-            <label className="label">Full Name *</label>
+            <label className="label">ชื่อ-นามสกุล *</label>
             <input
               className="input"
-              placeholder="Your name"
+              placeholder="ชื่อของคุณ"
               value={walkin.name}
               onChange={e => setWalkin(w => ({ ...w, name: e.target.value }))}
               required
@@ -303,7 +308,7 @@ export default function CheckIn() {
             />
           </div>
           <div>
-            <label className="label">Email (optional)</label>
+            <label className="label">อีเมล (ไม่บังคับ)</label>
             <input
               className="input"
               type="email"
@@ -314,20 +319,20 @@ export default function CheckIn() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Company</label>
+              <label className="label">บริษัท</label>
               <select className="input" value={walkin.company} onChange={e => setWalkin(w => ({ ...w, company: e.target.value }))}>
                 {COMPANIES.map(c => <option key={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label className="label">Category</label>
+              <label className="label">ประเภท</label>
               <select className="input" value={walkin.category} onChange={e => setWalkin(w => ({ ...w, category: e.target.value }))}>
                 {CATEGORIES.map(c => <option key={c}>{c}</option>)}
               </select>
             </div>
           </div>
           <button type="submit" className="btn-primary w-full" disabled={loading}>
-            {loading ? <LoadingSpinner size="sm" /> : '🏸 Register & Check In'}
+            {loading ? <LoadingSpinner size="sm" /> : '🏸 ลงทะเบียนและเช็คอิน'}
           </button>
         </form>
       </div>
