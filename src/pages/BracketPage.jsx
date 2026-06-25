@@ -8,13 +8,14 @@ const LEVELS = [
   { key: 'basic', label: 'Beginner' },
 ]
 
-// More teams = earlier round = further left. Numbered "รอบ N ทีม" sort by team
-// count descending; finals keywords fall to the right.
+// Column order, left → right: the knockout / play-in stage comes first, then
+// the main rounds by largest field (32 → 16 → 8 …), then semifinal and final.
 function roundRank(name) {
+  if (/น้อก/.test(name)) return 0
   const n = name.match(/(\d+)\s*ทีม/)
   if (n) return 10000 - parseInt(n[1], 10)
-  if (/ชิง/.test(name)) return 30000
   if (/รอง/.test(name)) return 25000
+  if (/ชิง/.test(name)) return 30000
   return 20000
 }
 
