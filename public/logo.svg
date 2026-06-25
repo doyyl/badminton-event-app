@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" role="img" aria-label="SMASH Badminton">
+  <circle cx="60" cy="60" r="57" fill="#ffffff" stroke="#dc2626" stroke-width="3"/>
+  <!-- feather cone -->
+  <path d="M60 84 L38 40 Q60 30 82 40 Z" fill="#fde8e8" stroke="#dc2626" stroke-width="2.5" stroke-linejoin="round"/>
+  <line x1="49" y1="44" x2="55" y2="82" stroke="#dc2626" stroke-width="1.5"/>
+  <line x1="60" y1="36" x2="60" y2="84" stroke="#dc2626" stroke-width="1.5"/>
+  <line x1="71" y1="44" x2="65" y2="82" stroke="#dc2626" stroke-width="1.5"/>
+  <!-- cork -->
+  <path d="M48 84 Q60 78 72 84 L70 96 Q60 102 50 96 Z" fill="#dc2626"/>
+</svg>

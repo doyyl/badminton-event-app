@@ -66,8 +66,8 @@ export default function ResultsPage() {
       {/* Tabs */}
       <div className="flex bg-white border-b border-gray-200">
         {[
-          { key: 'schedule', label: '📋 ตารางแข่ง' },
-          { key: 'standings', label: '🏆 อันดับ' },
+          { key: 'schedule', label: '📋 Schedule' },
+          { key: 'standings', label: '🏆 Standings' },
         ].map(t => (
           <button
             key={t.key}
@@ -95,7 +95,7 @@ export default function ResultsPage() {
               {schedule.length === 0 && (
                 <div className="flex flex-col items-center py-16 text-center gap-3">
                   <div className="text-4xl">📋</div>
-                  <p className="text-gray-400 text-sm">ยังไม่มีข้อมูลตารางแข่ง</p>
+                  <p className="text-gray-400 text-sm">No schedule yet</p>
                 </div>
               )}
 
@@ -103,9 +103,9 @@ export default function ResultsPage() {
               {schedule.length > 0 && (
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { label: 'กำลังแข่ง', value: live.length, color: 'text-primary', bg: 'bg-primary/5' },
-                    { label: 'รอแข่ง', value: upcoming.length, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: 'จบแล้ว', value: done.length, color: 'text-green-600', bg: 'bg-green-50' },
+                    { label: 'Live', value: live.length, color: 'text-primary', bg: 'bg-primary/5' },
+                    { label: 'Upcoming', value: upcoming.length, color: 'text-amber-600', bg: 'bg-amber-50' },
+                    { label: 'Finished', value: done.length, color: 'text-green-600', bg: 'bg-green-50' },
                   ].map(s => (
                     <div key={s.label} className={`card text-center py-3 ${s.bg}`}>
                       <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
@@ -115,9 +115,9 @@ export default function ResultsPage() {
                 </div>
               )}
 
-              {live.length > 0 && <ScheduleGroup label="🔴 กำลังแข่งขัน" rows={live} defaultOpen />}
-              {upcoming.length > 0 && <ScheduleGroup label="⏰ รอแข่ง" rows={upcoming} defaultOpen />}
-              {done.length > 0 && <ScheduleGroup label="✅ แข่งจบแล้ว" rows={done} defaultOpen={false} />}
+              {live.length > 0 && <ScheduleGroup label="🔴 Live now" rows={live} defaultOpen />}
+              {upcoming.length > 0 && <ScheduleGroup label="⏰ Upcoming" rows={upcoming} defaultOpen />}
+              {done.length > 0 && <ScheduleGroup label="✅ Finished" rows={done} defaultOpen={false} />}
             </div>
           )}
 
@@ -145,7 +145,7 @@ export default function ResultsPage() {
               {standings.basic.length === 0 && standings.expert.length === 0 && (
                 <div className="flex flex-col items-center py-16 text-center gap-3">
                   <div className="text-4xl">🏆</div>
-                  <p className="text-gray-400 text-sm">ยังไม่มีผลการแข่งขัน</p>
+                  <p className="text-gray-400 text-sm">No results yet</p>
                 </div>
               )}
             </div>
@@ -165,7 +165,7 @@ function StandingsSection({ level, matches }) {
   // Group completed by round
   const byRound = {}
   for (const m of completed) {
-    const key = m.round || 'ผลการแข่งขัน'
+    const key = m.round || 'Results'
     if (!byRound[key]) byRound[key] = []
     byRound[key].push(m)
   }
@@ -176,7 +176,7 @@ function StandingsSection({ level, matches }) {
     <div className="space-y-3">
       <div className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${color}`}>
         🏸 {level}
-        <span className="font-normal opacity-70">· {completed.length} แมตช์จบแล้ว</span>
+        <span className="font-normal opacity-70">· {completed.length} matches done</span>
       </div>
 
       {Object.entries(byRound).map(([round, ms]) => (
@@ -184,11 +184,11 @@ function StandingsSection({ level, matches }) {
       ))}
 
       {assigned.length > 0 && (
-        <RoundGroup round="รอแข่ง" matches={assigned} defaultOpen={false} dimmed />
+        <RoundGroup round="Upcoming" matches={assigned} defaultOpen={false} dimmed />
       )}
 
       {completed.length === 0 && assigned.length === 0 && (
-        <p className="text-gray-400 text-sm text-center py-4">ยังไม่มีผล</p>
+        <p className="text-gray-400 text-sm text-center py-4">No results</p>
       )}
     </div>
   )
@@ -203,7 +203,7 @@ function RoundGroup({ round, matches, defaultOpen = true, dimmed = false }) {
         className="w-full flex items-center justify-between px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
       >
         <span className="font-bold text-sm text-gray-800">{round}</span>
-        <span className="text-gray-400 text-xs">{matches.length} แมตช์ {open ? '▲' : '▼'}</span>
+        <span className="text-gray-400 text-xs">{matches.length} matches {open ? '▲' : '▼'}</span>
       </button>
       {open && matches.map((m, i) => (
         <MatchCard key={m.matchNo} match={m} border={i > 0} dimmed={dimmed} />
@@ -221,7 +221,7 @@ function MatchCard({ match, border, dimmed }) {
       <div className="flex items-center gap-1 mb-2 text-xs text-gray-400">
         <span className="font-mono">#{matchNo}</span>
         {time && <span>· {time}</span>}
-        {court && <span className="bg-gray-100 text-gray-600 font-semibold px-1.5 py-0.5 rounded">สนาม {court}</span>}
+        {court && <span className="bg-gray-100 text-gray-600 font-semibold px-1.5 py-0.5 rounded">Court {court}</span>}
       </div>
 
       {/* Team 1 */}
@@ -280,7 +280,7 @@ function ScheduleGroup({ label, rows, defaultOpen }) {
         className="w-full flex items-center justify-between px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
       >
         <span className="font-bold text-sm text-gray-800">{label}</span>
-        <span className="text-gray-400 text-xs">{rows.length} แมตช์ {open ? '▲' : '▼'}</span>
+        <span className="text-gray-400 text-xs">{rows.length} matches {open ? '▲' : '▼'}</span>
       </button>
       {open && rows.map((r, i) => (
         <div

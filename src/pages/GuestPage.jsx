@@ -64,7 +64,7 @@ export default function GuestPage() {
       if (found?.courtNum) {
         setSheetCourt(prev => {
           if (!prev || prev.courtNum !== found.courtNum) {
-            toast(`🏟️ คุณถูกกำหนดให้เล่นที่ ${found.courtRaw}! (Match ${found.matchNo})`, { duration: 6000 })
+            toast(`🏟️ You're assigned to ${found.courtRaw}! (Match ${found.matchNo})`, { duration: 6000 })
           }
           return found
         })
@@ -187,11 +187,11 @@ export default function GuestPage() {
                 <div className="text-left">
                   <p className="font-semibold text-gray-800">My Court</p>
                   {courtMatch ? (
-                    <p className="text-xs text-primary font-bold">สนาม {courtMatch.court_id}</p>
+                    <p className="text-xs text-primary font-bold">Court {courtMatch.court_id}</p>
                   ) : sheetCourt?.courtNum ? (
-                    <p className="text-xs text-primary font-bold">สนาม {sheetCourt.courtNum} · Match #{sheetCourt.matchNo}</p>
+                    <p className="text-xs text-primary font-bold">Court {sheetCourt.courtNum} · Match #{sheetCourt.matchNo}</p>
                   ) : (
-                    <p className="text-xs text-gray-400">ยังไม่มีการกำหนดสนาม</p>
+                    <p className="text-xs text-gray-400">No court assigned yet</p>
                   )}
                 </div>
               </div>
@@ -254,7 +254,7 @@ export default function GuestPage() {
           onClick={logout}
           className="btn-secondary w-full text-gray-700 border-gray-300"
         >
-          🚪 ออกจากระบบ / Log out
+          🚪 Log out
         </button>
         <p className="text-center text-xs text-gray-400">Pass ID · {guest.external_id}</p>
       </div>
@@ -294,7 +294,7 @@ function ResultsView({ standings, motm, schedule, onBack }) {
                 : 'text-gray-400 hover:text-gray-600'
             }`}
           >
-            {t === 'schedule' ? '📋 ตารางแข่ง' : '🏆 อันดับ'}
+            {t === 'schedule' ? '📋 Schedule' : '🏆 Standings'}
           </button>
         ))}
       </div>
@@ -305,18 +305,18 @@ function ResultsView({ standings, motm, schedule, onBack }) {
             {schedule.length === 0 && (
               <div className="flex flex-col items-center py-16 text-center gap-3">
                 <div className="text-4xl">📋</div>
-                <p className="text-gray-400 text-sm">ยังไม่มีข้อมูลตารางแข่ง</p>
+                <p className="text-gray-400 text-sm">No schedule yet</p>
               </div>
             )}
 
             {live.length > 0 && (
-              <ScheduleGroup label="🔴 กำลังแข่งขัน" rows={live} />
+              <ScheduleGroup label="🔴 Live now" rows={live} />
             )}
             {upcoming.length > 0 && (
-              <ScheduleGroup label="⏰ รอแข่ง" rows={upcoming} />
+              <ScheduleGroup label="⏰ Upcoming" rows={upcoming} />
             )}
             {done.length > 0 && (
-              <ScheduleGroup label="✅ แข่งจบแล้ว" rows={done} collapsed />
+              <ScheduleGroup label="✅ Finished" rows={done} collapsed />
             )}
           </div>
         )}
@@ -340,7 +340,7 @@ function ResultsView({ standings, motm, schedule, onBack }) {
             {standings.basic.length === 0 && standings.expert.length === 0 && (
               <div className="flex flex-col items-center py-12 text-center gap-3">
                 <div className="text-4xl">🏆</div>
-                <p className="text-gray-400 text-sm">ยังไม่มีผลการแข่งขัน</p>
+                <p className="text-gray-400 text-sm">No results yet</p>
               </div>
             )}
           </div>
@@ -359,7 +359,7 @@ function ScheduleGroup({ label, rows, collapsed = false }) {
         className="w-full flex items-center justify-between px-4 py-3 border-b border-gray-100 hover:bg-gray-50"
       >
         <span className="font-bold text-sm text-gray-800">{label}</span>
-        <span className="text-gray-400 text-xs">{rows.length} แมตช์ {open ? '▲' : '▼'}</span>
+        <span className="text-gray-400 text-xs">{rows.length} matches {open ? '▲' : '▼'}</span>
       </button>
       {open && (
         <div>
@@ -430,12 +430,12 @@ function CourtView({ match, sheetCourt, guestId, onBack, nav }) {
         </header>
         <div className="p-4 space-y-4">
           <div className="card bg-primary/5 border-primary/20 text-center py-6">
-            <p className="text-xs text-primary font-bold uppercase tracking-widest mb-1">สนามของคุณ</p>
+            <p className="text-xs text-primary font-bold uppercase tracking-widest mb-1">Your Court</p>
             <p className="text-6xl font-black text-gray-900">{sheetCourt.courtNum}</p>
             <p className="text-sm text-gray-500 mt-2">{sheetCourt.courtRaw}</p>
           </div>
           <div className="card space-y-2">
-            <p className="text-xs text-gray-400 uppercase tracking-widest font-bold">รายละเอียดแมตช์</p>
+            <p className="text-xs text-gray-400 uppercase tracking-widest font-bold">Match details</p>
             <p className="font-semibold text-gray-900">Match #{sheetCourt.matchNo} · {sheetCourt.round}</p>
             <p className="text-sm text-gray-500">{sheetCourt.category} · {sheetCourt.time}</p>
           </div>
@@ -520,7 +520,7 @@ function StandingsSection({ level, matches }) {
   if (matches.length === 0) return null
   const byRound = {}
   for (const m of completed) {
-    const key = m.round || 'ผลการแข่งขัน'
+    const key = m.round || 'Results'
     if (!byRound[key]) byRound[key] = []
     byRound[key].push(m)
   }
@@ -531,16 +531,16 @@ function StandingsSection({ level, matches }) {
     <div className="space-y-3">
       <div className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${color}`}>
         🏸 {level}
-        <span className="font-normal opacity-70">· {completed.length} แมตช์จบแล้ว</span>
+        <span className="font-normal opacity-70">· {completed.length} matches done</span>
       </div>
       {Object.entries(byRound).map(([round, ms]) => (
         <RoundGroup key={round} round={round} matches={ms} />
       ))}
       {assigned.length > 0 && (
-        <RoundGroup round="รอแข่ง" matches={assigned} defaultOpen={false} dimmed />
+        <RoundGroup round="Upcoming" matches={assigned} defaultOpen={false} dimmed />
       )}
       {completed.length === 0 && assigned.length === 0 && (
-        <p className="text-gray-400 text-sm text-center py-4">ยังไม่มีผล</p>
+        <p className="text-gray-400 text-sm text-center py-4">No results</p>
       )}
     </div>
   )
@@ -555,7 +555,7 @@ function RoundGroup({ round, matches, defaultOpen = true, dimmed = false }) {
         className="w-full flex items-center justify-between px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
       >
         <span className="font-bold text-sm text-gray-800">{round}</span>
-        <span className="text-gray-400 text-xs">{matches.length} แมตช์ {open ? '▲' : '▼'}</span>
+        <span className="text-gray-400 text-xs">{matches.length} matches {open ? '▲' : '▼'}</span>
       </button>
       {open && matches.map((m, i) => (
         <MatchCard key={m.matchNo} match={m} border={i > 0} dimmed={dimmed} />
@@ -572,7 +572,7 @@ function MatchCard({ match, border, dimmed }) {
       <div className="flex items-center gap-1 mb-2 text-xs text-gray-400">
         <span className="font-mono">#{matchNo}</span>
         {time && <span>· {time}</span>}
-        {court && <span className="bg-gray-100 text-gray-600 font-semibold px-1.5 py-0.5 rounded">สนาม {court}</span>}
+        {court && <span className="bg-gray-100 text-gray-600 font-semibold px-1.5 py-0.5 rounded">Court {court}</span>}
       </div>
       {[{ t: team1, opp: team2 }, { t: team2, opp: team1 }].map(({ t, opp }, idx) => (
         <div key={idx} className={`flex items-center justify-between gap-2 py-1.5 rounded-lg px-2 mb-1 ${winner === t.team ? 'bg-green-50' : ''}`}>

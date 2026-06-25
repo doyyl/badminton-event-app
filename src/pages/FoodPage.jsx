@@ -193,10 +193,10 @@ export default function FoodPage() {
             <p className="text-xl font-bold text-gray-700">{claimedItem.meta.name}</p>
             {claimedItem.qty > 1 && (
               <div className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full text-sm">
-                × {claimedItem.qty} ครั้ง
+                × {claimedItem.qty}
               </div>
             )}
-            <p className="text-sm text-gray-400">เครมสำเร็จสำหรับ {guest.name}</p>
+            <p className="text-sm text-gray-400">Claimed for {guest.name}</p>
           </div>
 
           {/* Remaining coupons summary */}
@@ -341,14 +341,14 @@ export default function FoodPage() {
                 <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Confirm Claim</p>
                 <h3 className="text-xl font-black text-gray-900">{pendingClaim.meta.name}</h3>
                 <p className="text-sm text-gray-400 mt-0.5">
-                  เหลือสิทธิ์ {remaining} ครั้ง
+                  {remaining} left
                 </p>
               </div>
             </div>
 
             {/* Quantity picker */}
             <div className="bg-gray-50 rounded-2xl px-4 py-4">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center mb-3">จำนวนที่ต้องการรับ</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center mb-3">How many to claim</p>
               <div className="flex items-center justify-center gap-6">
                 <button
                   onClick={() => setClaimQty(q => Math.max(1, q - 1))}
@@ -359,7 +359,7 @@ export default function FoodPage() {
                 </button>
                 <div className="text-center min-w-[3rem]">
                   <span className="text-4xl font-black text-gray-900">{claimQty}</span>
-                  <p className="text-xs text-gray-400 mt-0.5">ครั้ง</p>
+                  <p className="text-xs text-gray-400 mt-0.5">qty</p>
                 </div>
                 <button
                   onClick={() => setClaimQty(q => Math.min(remaining, q + 1))}
@@ -405,7 +405,7 @@ export default function FoodPage() {
                 disabled={confirming}
                 className="py-3 rounded-2xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 disabled:opacity-50 transition-all"
               >
-                ยกเลิก
+                Cancel
               </button>
               <button
                 onClick={confirmClaim}
@@ -414,7 +414,7 @@ export default function FoodPage() {
               >
                 {confirming
                 ? <LoadingSpinner size="sm" />
-                : `✓ ยืนยัน ${claimQty > 1 ? `${claimQty} ครั้ง` : ''}`}
+                : `✓ Confirm ${claimQty > 1 ? `× ${claimQty}` : ''}`}
               </button>
             </div>
           </div>
