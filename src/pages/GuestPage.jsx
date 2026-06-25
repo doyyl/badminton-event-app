@@ -309,6 +309,22 @@ function ResultsView({ standings, motm, schedule, onBack }) {
               </div>
             )}
 
+            {/* Summary — same stats as the public Live Results page */}
+            {schedule.length > 0 && (
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Live', value: live.length, color: 'text-primary', bg: 'bg-primary/5' },
+                  { label: 'Upcoming', value: upcoming.length, color: 'text-amber-600', bg: 'bg-amber-50' },
+                  { label: 'Finished', value: done.length, color: 'text-green-600', bg: 'bg-green-50' },
+                ].map(s => (
+                  <div key={s.label} className={`card text-center py-3 ${s.bg}`}>
+                    <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {live.length > 0 && (
               <ScheduleGroup label="🔴 Live now" rows={live} />
             )}

@@ -145,7 +145,7 @@ export default function CheckIn() {
             src="https://i.ibb.co/rKvZCmxQ/Fun.png"
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover object-top opacity-[0.01]"
+            className="absolute inset-0 h-full w-full object-cover object-top opacity-5"
             onError={e => { e.currentTarget.style.display = 'none' }}
           />
           {/* Light scrim keeps the white/red text legible over any image */}
