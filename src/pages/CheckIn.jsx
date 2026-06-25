@@ -6,14 +6,12 @@ import LoadingSpinner from '../components/LoadingSpinner'
 
 const COMPANIES = ['COV', 'AVT', 'Thai MFC', 'DOW', 'SOLVAY', 'Styrenix', 'TEX', 'TPAC', 'BEE', 'KNS', 'KNT', 'Other']
 const CATEGORIES = ['Basic', 'Expert', 'Substitute', 'Follower']
-const GUEST_PASSWORD = import.meta.env.VITE_GUEST_PASSWORD || 'smash2026'
 
 export default function CheckIn() {
   const nav = useNavigate()
   const [step, setStep] = useState('home') // 'home' | 'email' | 'confirm' | 'walkin'
   const [loading, setLoading] = useState(false)
   const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
   const [walkinEmail, setWalkinEmail] = useState('')
   const [found, setFound] = useState(null)
   const [walkin, setWalkin] = useState({ name: '', company: 'COV', category: 'Basic' })
@@ -21,10 +19,6 @@ export default function CheckIn() {
   async function handleEmailSubmit(e) {
     e.preventDefault()
     if (!username.trim()) return
-    if (password !== GUEST_PASSWORD) {
-      toast.error('Incorrect password')
-      return
-    }
     setLoading(true)
     try {
       const { data } = await supabase
@@ -128,7 +122,7 @@ export default function CheckIn() {
           <h1 className="text-4xl font-black text-white leading-tight">Badminton</h1>
           <h2 className="text-3xl font-black text-primary mt-1">Tournament 2026!</h2>
           <p className="text-white/70 text-sm mt-3">
-            Corporate badminton tournament. Log in with your username and password to access your pass.
+            Corporate badminton tournament. Log in with your username to access your pass.
           </p>
         </div>
 
@@ -203,17 +197,6 @@ export default function CheckIn() {
                 required
               />
               <p className="text-xs text-gray-400 mt-1">The part of your email before the @</p>
-            </div>
-            <div>
-              <label className="label">Password</label>
-              <input
-                className="input"
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
             </div>
             <button type="submit" className="btn-primary w-full" disabled={loading}>
               {loading ? <LoadingSpinner size="sm" /> : 'Continue →'}
