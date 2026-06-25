@@ -139,19 +139,32 @@ export default function CheckIn() {
     return (
       <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
         {/* Hero */}
-        <div className="bg-gradient-to-b from-slate-400 to-slate-300 px-6 pt-12 pb-10 text-center">
+        <div className="relative overflow-hidden bg-gradient-to-b from-slate-400 to-slate-300 px-6 pt-12 pb-10 text-center">
+          {/* Background image (falls back to the slate gradient if it fails to load) */}
           <img
-            src="/logo.svg"
-            alt="SMASH Badminton"
-            className="mx-auto mb-4 h-24 w-24 drop-shadow-md"
+            src="https://i.ibb.co/yF29YLV2/3.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover"
             onError={e => { e.currentTarget.style.display = 'none' }}
           />
-          <p className="text-xs font-bold text-white/70 uppercase tracking-widest mb-4">SMASH BADMINTON</p>
-          <h1 className="text-4xl font-black text-white leading-tight">Badminton</h1>
-          <h2 className="text-3xl font-black text-primary mt-1">Tournament 2026!</h2>
-          <p className="text-white/70 text-sm mt-3">
-            Corporate badminton tournament. Log in with your email to access your pass.
-          </p>
+          {/* Dark scrim keeps the white/red text legible over any image */}
+          <div className="absolute inset-0 bg-black/35" aria-hidden="true" />
+
+          <div className="relative">
+            <img
+              src="/logo.svg"
+              alt="SMASH Badminton"
+              className="mx-auto mb-4 h-24 w-24 drop-shadow-md"
+              onError={e => { e.currentTarget.style.display = 'none' }}
+            />
+            <p className="text-xs font-bold text-white/80 uppercase tracking-widest mb-4">SMASH BADMINTON</p>
+            <h1 className="text-4xl font-black text-white leading-tight drop-shadow">Badminton</h1>
+            <h2 className="text-3xl font-black text-primary mt-1 drop-shadow">Tournament 2026!</h2>
+            <p className="text-white/80 text-sm mt-3 drop-shadow">
+              Corporate badminton tournament. Log in with your email to access your pass.
+            </p>
+          </div>
         </div>
 
         {/* Actions */}
