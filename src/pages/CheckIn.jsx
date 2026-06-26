@@ -154,15 +154,18 @@ export default function CheckIn() {
           <div className="relative">
             <img
               src="/logo.svg"
-              alt="SMASH Badminton"
+              alt="Katoen Natie"
               className="mx-auto mb-4 h-24 w-24 drop-shadow-md"
               onError={e => { e.currentTarget.style.display = 'none' }}
             />
-            <p className="text-xs font-bold text-white/80 uppercase tracking-widest mb-4">SMASH BADMINTON</p>
-            <h1 className="text-4xl font-black text-white leading-tight drop-shadow">Badminton</h1>
-            <h2 className="text-3xl font-black text-primary mt-1 drop-shadow">Tournament 2026!</h2>
+            <p className="text-xs font-bold text-white/80 uppercase tracking-widest mb-3">Katoen Natie</p>
+            <h1 className="text-4xl font-black text-white leading-tight drop-shadow">FIRM FUN FRIEND</h1>
+            <h2 className="text-3xl font-black text-primary mt-1 drop-shadow">2026</h2>
+            <div className="inline-flex items-center mt-3 bg-white/20 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest">
+              SMASH GAME 3
+            </div>
             <p className="text-white/80 text-sm mt-3 drop-shadow">
-              Corporate badminton tournament. Log in with your email to access your pass.
+              Log in with your email to access your pass.
             </p>
           </div>
         </div>
