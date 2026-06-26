@@ -147,25 +147,37 @@ export default function GuestPage() {
   return (
     <div className="min-h-dvh flex flex-col bg-gray-50 max-w-lg mx-auto">
       {/* Hero profile section */}
-      <div className="bg-gradient-to-b from-slate-400 to-slate-300 px-6 pt-10 pb-8 text-center">
-        <div className="inline-flex items-center bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-widest">
-          {guest.company || 'SMASH'}
+      <div className="relative overflow-hidden bg-gradient-to-b from-slate-400 to-slate-300 px-6 pt-10 pb-8 text-center">
+        {/* Event background — matches the home hero (falls back to the gradient) */}
+        <img
+          src="https://i.ibb.co/rKvZCmxQ/Fun.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover object-top opacity-5"
+          onError={e => { e.currentTarget.style.display = 'none' }}
+        />
+        <div className="absolute inset-0 bg-black/10" aria-hidden="true" />
+
+        <div className="relative">
+          <div className="inline-flex items-center bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-widest">
+            {guest.company || 'KATOEN NATIE'}
+          </div>
+          <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center text-3xl font-black text-slate-600 mx-auto mb-3">
+            {guest.name?.charAt(0)?.toUpperCase()}
+          </div>
+          <h1 className="text-2xl font-black text-white">{guest.name}</h1>
+          <p className="text-white/70 text-sm">{guest.company}</p>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <span className="bg-white/20 text-white text-xs font-semibold px-2 py-0.5 rounded-full uppercase">
+              {guest.category}
+            </span>
+            <span className="text-white/40">·</span>
+            <span className="bg-white/20 text-white text-xs font-semibold px-2 py-0.5 rounded-full uppercase">
+              {guest.role}
+            </span>
+          </div>
+          <p className="text-white/50 text-xs mt-3 uppercase tracking-widest">SMASH GAME 3 · FIRM FUN FRIENDS 2026</p>
         </div>
-        <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center text-3xl font-black text-slate-600 mx-auto mb-3">
-          {guest.name?.charAt(0)?.toUpperCase()}
-        </div>
-        <h1 className="text-2xl font-black text-white">{guest.name}</h1>
-        <p className="text-white/70 text-sm">{guest.company}</p>
-        <div className="flex items-center justify-center gap-2 mt-2">
-          <span className="bg-white/20 text-white text-xs font-semibold px-2 py-0.5 rounded-full uppercase">
-            {guest.category}
-          </span>
-          <span className="text-white/40">·</span>
-          <span className="bg-white/20 text-white text-xs font-semibold px-2 py-0.5 rounded-full uppercase">
-            {guest.role}
-          </span>
-        </div>
-        <p className="text-white/50 text-xs mt-3 uppercase tracking-widest">SMASH BADMINTON · TOURNAMENT 2026</p>
       </div>
 
       {/* Status bar */}
