@@ -11,6 +11,8 @@ import LoadingSpinner from '../components/LoadingSpinner'
 export default function FoodPage() {
   const nav = useNavigate()
   const guest = JSON.parse(sessionStorage.getItem('badminton_guest') || '{}')
+  // Excom members get unlimited food — never capped at the per-item quota.
+  const isUnlimited = guest.role === 'Excom'
   const [foodItems, setFoodItems] = useState([])
   const [claims, setClaims] = useState([])
   const [loading, setLoading] = useState(true)
@@ -205,7 +207,7 @@ export default function FoodPage() {
             {foodItems.filter(item => !HIDDEN_FOOD_IDS.has(item.id)).map(item => {
               const meta = FOOD_META[item.id] || { name: item.name, emoji: '🍽️' }
               const claimed = claimCount(item.id) + (item.id === claimedItem.itemId || String(item.id) === claimedItem.itemId ? 1 : 0)
-              const full = claimed >= item.quota
+              const full = !isUnlimited && claimed >= item.quota
               return (
                 <div key={item.id} className="flex items-center gap-3">
                   <span className="text-lg w-7 text-center">{meta.emoji}</span>
@@ -214,7 +216,7 @@ export default function FoodPage() {
                   </span>
                   {full
                     ? <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ Done</span>
-                    : <span className="text-xs text-gray-400">{claimed}/{item.quota}</span>
+                    : <span className="text-xs text-gray-400">{isUnlimited ? `${claimed} ✕` : `${claimed}/${item.quota}`}</span>
                   }
                 </div>
               )
@@ -256,7 +258,7 @@ export default function FoodPage() {
         {foodItems.filter(item => !HIDDEN_FOOD_IDS.has(item.id)).map(item => {
           const meta = FOOD_META[item.id] || { name: item.name, emoji: '🍽️' }
           const claimed = claimCount(item.id)
-          const full = claimed >= item.quota
+          const full = !isUnlimited && claimed >= item.quota
 
           return (
             <div key={item.id} className={`card flex items-center gap-4 ${full ? 'opacity-70' : ''}`}>
@@ -266,16 +268,20 @@ export default function FoodPage() {
                   {meta.name}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Quota: {item.quota} · Claimed: {claimed}/{item.quota}
+                  {isUnlimited
+                    ? `Unlimited · Claimed: ${claimed}`
+                    : `Quota: ${item.quota} · Claimed: ${claimed}/${item.quota}`}
                 </p>
-                <div className="flex gap-1 mt-1.5">
-                  {Array.from({ length: item.quota }).map((_, i) => (
-                    <span
-                      key={i}
-                      className={`w-2.5 h-2.5 rounded-full ${i < claimed ? 'bg-green-500' : 'bg-gray-200'}`}
-                    />
-                  ))}
-                </div>
+                {!isUnlimited && (
+                  <div className="flex gap-1 mt-1.5">
+                    {Array.from({ length: item.quota }).map((_, i) => (
+                      <span
+                        key={i}
+                        className={`w-2.5 h-2.5 rounded-full ${i < claimed ? 'bg-green-500' : 'bg-gray-200'}`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
               {full ? (
                 <div className="flex items-center gap-1 text-green-600 text-sm font-bold whitespace-nowrap">
@@ -328,7 +334,7 @@ export default function FoodPage() {
       {/* Step 2: Verification modal */}
       {pendingClaim && (() => {
         const already = claimCount(pendingClaim.itemId)
-        const remaining = pendingClaim.item ? pendingClaim.item.quota - already : 1
+        const remaining = isUnlimited ? 99 : (pendingClaim.item ? pendingClaim.item.quota - already : 1)
         return (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl">
@@ -341,7 +347,7 @@ export default function FoodPage() {
                 <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Confirm Claim</p>
                 <h3 className="text-xl font-black text-gray-900">{pendingClaim.meta.name}</h3>
                 <p className="text-sm text-gray-400 mt-0.5">
-                  {remaining} left
+                  {isUnlimited ? 'Unlimited' : `${remaining} left`}
                 </p>
               </div>
             </div>

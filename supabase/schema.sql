@@ -92,6 +92,7 @@ DECLARE
   v_quota    int;
   v_claimed  int;
   v_remaining int;
+  v_role     text;
 BEGIN
   -- Advisory lock scoped to this transaction, keyed on (attendee, item)
   PERFORM pg_advisory_xact_lock(
@@ -108,13 +109,19 @@ BEGIN
     RETURN json_build_object('success', false, 'error', 'item_not_found');
   END IF;
 
+  -- Excom members (attendees.role = 'Excom') get unlimited food.
+  SELECT role INTO v_role
+  FROM attendees
+  WHERE external_id = p_attendee_external_id;
+
   -- Count existing claims under the lock
   SELECT COUNT(*) INTO v_claimed
   FROM food_claims
   WHERE attendee_external_id = p_attendee_external_id
     AND item_id = p_item_id;
 
-  IF v_claimed >= v_quota THEN
+  -- Everyone except Excom is capped at the per-item quota.
+  IF v_role IS DISTINCT FROM 'Excom' AND v_claimed >= v_quota THEN
     RETURN json_build_object(
       'success', false,
       'error',   'quota_reached',
@@ -127,13 +134,14 @@ BEGIN
   INSERT INTO food_claims (attendee_external_id, item_id)
   VALUES (p_attendee_external_id, p_item_id);
 
-  v_remaining := v_quota - v_claimed - 1;
+  v_remaining := CASE WHEN v_role = 'Excom' THEN 999 ELSE v_quota - v_claimed - 1 END;
 
   RETURN json_build_object(
     'success',   true,
     'claimed',   v_claimed + 1,
     'quota',     v_quota,
-    'remaining', v_remaining
+    'remaining', v_remaining,
+    'unlimited', v_role = 'Excom'
   );
 END;
 $$;

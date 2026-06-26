@@ -115,7 +115,8 @@ export default function GuestPage() {
     }
   }, [])
 
-  const allClaimed = foodItems.length > 0 && foodItems.every(item => {
+  // Excom members have unlimited food, so their list is never "all claimed".
+  const allClaimed = guest.role !== 'Excom' && foodItems.length > 0 && foodItems.every(item => {
     const count = claims.filter(c => c.item_id === item.id).length
     return count >= item.quota
   })
